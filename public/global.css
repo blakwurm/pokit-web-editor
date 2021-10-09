@@ -13,3 +13,13 @@ body, * {
 body {
 	background: black;
 }
+
+main {
+	
+}
+
+main button {
+	background: black;
+	border: 5px double white;
+	padding: 2px;
+}

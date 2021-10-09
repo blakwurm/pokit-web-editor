@@ -1,23 +1,27 @@
-<script>
+<script lang="ts">
 	import MapView from './MapView.svelte'
 	import InspectorView from './InspectorView.svelte'
 	import PaletteView from './PaletteView.svelte'
-	export let name;
+	export let name: string;
+	import * as util from './util.js'
+
+	let canv = document.createElement('canvas')
 
 	let views = {
 		map: MapView,
 		inspector: InspectorView,
 		palette: PaletteView
 	}
+	let activeView = 'palette'
 
 </script>
 
-<main>
-	hola
+<main> 
+	<svelte:component this={views[activeView]} canv={canv}/>
 </main>
 <footer>
 	{#each Object.entries(views) as [name, view]}
-		<button>{name}</button>
+		<button class:selected={activeView===name} on:click={e=>activeView=name}>{util.capEveryWord(name)}</button>
 	{/each}
 </footer>
 
