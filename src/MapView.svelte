@@ -13,4 +13,13 @@ import { onMount } from "svelte";
 </script>
 
 <div id="canvcontainer" bind:this={canvcontainer}></div>
-Y'hello
+
+<style>
+    #canvcontainer { background: blue; }
+    canvas {
+        background: red;
+        display: block;
+        height: 100%;
+        width: 100%;
+    }
+</style>

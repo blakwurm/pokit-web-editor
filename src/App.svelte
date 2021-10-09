@@ -6,13 +6,15 @@
 	import * as util from './util.js'
 
 	let canv = document.createElement('canvas')
+	canv.height = 300
+	canv.width = 300
 
 	let views = {
 		map: MapView,
 		inspector: InspectorView,
 		palette: PaletteView
 	}
-	let activeView = 'palette'
+	let activeView = 'map'
 
 </script>
 
