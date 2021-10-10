@@ -1,9 +1,12 @@
 <script lang="ts">
 import { onMount } from "svelte";
+import { MapCanvas } from "./MapCanvas";
 
 
     export let canv: HTMLCanvasElement
     let canvcontainer: HTMLDivElement
+    export let screendims: {x:number, y:number}
+    export let mapcanvas: MapCanvas
     console.log('canvas is ', canv)
     $:console.log(canv)
     onMount(()=>{

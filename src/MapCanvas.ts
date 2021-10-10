@@ -1,7 +1,6 @@
 import type { EntityStub, Identity, SceneStub, Vector } from "./pokit.types";
 import { appdata, AppData, currentScene } from "./stores";
-
-const POKIT_SCREEN_SIZE = 320;
+import * as util from './utils'
 
 export class MapCanvas {
     ctx: CanvasRenderingContext2D;
@@ -19,6 +18,7 @@ export class MapCanvas {
         this.depth = 0;
         appdata.subscribe(this.updateState.bind(this));
         currentScene.subscribe(this.updateCurrentScene.bind(this));
+        this.raf()
     }
 
     raf() {
@@ -39,6 +39,9 @@ export class MapCanvas {
     }
 
     render() {
+        if (!this.scene || !this.state) {
+          return
+        }
         this.ctx.clearRect(0,0,this.ctx.canvas.width, this.ctx.canvas.height);
         let entities: EntityStub[] = [];
         for(let [s, a] of Object.entries(this.scene.entities)) {
@@ -70,16 +73,25 @@ export class MapCanvas {
 
     renderEntity(entity: EntityStub) {
         let identity: Identity = entity.components.Identity;
-        let posX = pokit2screen(identity.position.x - this.scroll.x, identity.bounds.x);
-        let posY = pokit2screen(identity.position.y - this.scroll.y, identity.bounds.y);
-        this.ctx.rect(posX, posY, identity.bounds.x, identity.bounds.y);
-        posY -= 30;
-        this.ctx.fillText(identity.id!, posX, posY);
+        // let posX = pokit2screen(identity.position.x - this.scroll.x, identity.bounds.x);
+        // let posY = pokit2screen(identity.position.y - this.scroll.y, identity.bounds.y);
+        let pos = util.pokit2screen(identity.position, identity.bounds)
+        pos = util.vectorSub(pos, this.scroll)
+        this.ctx.rect(pos.x, pos.y, identity.bounds.x, identity.bounds.y);
+        pos.y -= 30;
+        this.ctx.fillText(identity.id!, pos.x, pos.y);
     }
-}
 
-function pokit2screen(n: number, b: number) {
-    return n + (POKIT_SCREEN_SIZE/2-(b/2))
+    translate(x: number, y: number, z?: number) {
+        this.scroll.x += x || 0
+        this.scroll.y += y || 0
+        this.depth += z || 0
+        this.dirty=true
+    }
+
+    transvec(v: Vector) {
+      this.translate(v.x, v.y, 0)
+    }
 }
 
 export function deepMerge(o: any, ...arr: any[]) {

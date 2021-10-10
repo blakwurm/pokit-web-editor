@@ -17,7 +17,18 @@ export function loads() {
 
 }
 
-export let appdata = love.undoStore(writable({} as AppData))
+export let appdata = love.undoStore(writable({
+    currentScene: 'defaultscene',
+    scenes: {
+        defaultscene: {systems: {}, entities:{}} as SceneStub
+    },
+    currentBrush: 'defaultbrush',
+    entities: {
+        defaultbrush: {inherits: [''], components: {}} as EntityStub
+    },
+    inspecting: ['defaultscene', '', 0],
+    isDragging: false
+} as AppData))
 
 export let currentScene = love.subStore(appdata, (a:AppData)=>a.scenes[a.currentScene])
 

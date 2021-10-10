@@ -1,5 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+	<script>
+		if (!window.process) {
+			window.process = {env: {NODE_ENV:"dev"}}
+		}
+	</script>
 <head>
 	<meta charset='utf-8'>
 	<meta name='viewport' content='width=device-width,initial-scale=1'>

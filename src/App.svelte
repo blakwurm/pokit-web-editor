@@ -4,10 +4,13 @@
 	import PaletteView from './PaletteView.svelte'
 	export let name: string;
 	import * as util from './util.js'
+import { MapCanvas } from './MapCanvas';
 
 	let canv = document.createElement('canvas')
 	canv.height = 300
 	canv.width = 300
+
+	let mapcanvas = new MapCanvas(canv)
 
 	let views = {
 		map: MapView,
@@ -16,10 +19,18 @@
 	}
 	let activeView = 'map'
 
+	let innerWidth = window.innerWidth
+	let innerHeight = window.innerHeight
+
+	$: screendims = {width: innerWidth - 30, height: innerHeight - 70}
+
+	$: console.log(innerWidth, innerHeight)
 </script>
 
+<svelte:window bind:innerHeight bind:innerWidth />
+
 <main> 
-	<svelte:component this={views[activeView]} canv={canv}/>
+	<svelte:component this={views[activeView]} canv={canv} mapcanvas={mapcanvas} screendims={screendims}/>
 </main>
 <footer>
 	{#each Object.entries(views) as [name, view]}
