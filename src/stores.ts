@@ -4,7 +4,7 @@ import { writable } from 'svelte/store'
 
 import type { CartManifest, EntityStub, SceneStub } from './pokit.types'
 
-interface AppData {
+export interface AppData {
     entities: Record<string, EntityStub>
     scenes: Record<string, SceneStub>
     currentScene: string
