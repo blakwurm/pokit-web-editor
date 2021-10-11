@@ -41,6 +41,7 @@ export class MapCanvas {
     }
 
     render() {
+      console.log('scene and state are', this.scene, this.state)
         if (!this.scene || !this.state) {
           return
         }
@@ -49,8 +50,11 @@ export class MapCanvas {
         for(let [s, a] of Object.entries(this.scene.entities)) {
             entities.push(...this.mergeEntities(s,a));
         }
+        console.log(entities)
         entities = entities.filter(e=>e.components.identity.z >= this.depth);
+        console.log(entities)
         entities.sort((a,b)=>a.components.identity.position.z-b.components.identity.position.z);
+        console.log(entities)
         entities.forEach(this.renderEntity);
     }
     renderdebug() {
@@ -90,6 +94,13 @@ export class MapCanvas {
                     identity: i
                 }
             };
+            entities["__DEFAULT_PARENT__"] = {
+                inherits: [],
+                components: {
+                    identity: util.defaultParent
+                }
+            };
+            lineage.push("__DEFAULT_PARENT__")
             lineage.unshift("__POKIT_IDENTITY__");
             return applyInheritance(lineage, entities);
         }) as EntityStub[];

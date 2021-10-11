@@ -67,6 +67,7 @@ export async function parseFolder(files: FileList) {
                 appdata.scenes[k] = v
             }
         }
+        appdata.currentScene = cart.defaultScene || appdata.currentScene
         return appdata 
     })
 }
