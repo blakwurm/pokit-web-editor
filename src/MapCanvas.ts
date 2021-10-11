@@ -55,7 +55,7 @@ export class MapCanvas {
         console.log(entities)
         entities.sort((a,b)=>a.components.identity.position.z-b.components.identity.position.z);
         console.log(entities)
-        entities.forEach(this.renderEntity);
+        entities.forEach(this.renderEntity.bind(this));
     }
     renderdebug() {
       // Set line width
@@ -107,12 +107,12 @@ export class MapCanvas {
     }
 
     renderEntity(entity: EntityStub) {
-        let identity: Identity = entity.components.Identity;
+        let identity: Identity = entity.components.identity;
         // let posX = pokit2screen(identity.position.x - this.scroll.x, identity.bounds.x);
         // let posY = pokit2screen(identity.position.y - this.scroll.y, identity.bounds.y);
-        let pos = util.pokit2screen(identity.position, identity.bounds)
+        let pos = util.pokit2screen(this.ctx.canvas, identity.position, identity.bounds)
         pos = util.vectorSub(pos, this.scroll)
-        this.ctx.rect(pos.x, pos.y, identity.bounds.x, identity.bounds.y);
+        this.ctx.fillRect(pos.x, pos.y, identity.bounds.x, identity.bounds.y);
         pos.y -= 30;
         this.ctx.fillText(identity.id!, pos.x, pos.y);
     }

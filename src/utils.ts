@@ -389,11 +389,11 @@ export default class SpatialHashMap {
  * @param b width and height of entity
  * @returns 
  */
-export function pokit2screen(n: Vector, b: Vector = {x:0,y:0}) {
+export function pokit2screen(c: HTMLCanvasElement, n: Vector, b: Vector = {x:0,y:0}) {
     // return n + (this.ctx.canvas.width/2-(b/2))
     return {
-      x: n.x + (this.ctx.canvas.width/2-(b.x/2)),
-      y: n.y + (this.ctx.canvas.height/2-(b.y/2)),
+      x: n.x + (c.width/2-(b.x/2)),
+      y: n.y + (c.height/2-(b.y/2)),
     }
 }
 
@@ -403,10 +403,10 @@ export function pokit2screen(n: Vector, b: Vector = {x:0,y:0}) {
  * @param b width and height of entity
  * @returns 
  */
-export function screen2pokit(n: Vector, b: Vector = {x:0,y:0}) {
+export function screen2pokit(c: HTMLCanvasElement, n: Vector, b: Vector = {x:0,y:0}) {
     // return n + (this.ctx.canvas.width/2-(b/2))
     return {
-      x: n.x - (this.ctx.canvas.width/2-(b.x/2)),
-      y: n.y - (this.ctx.canvas.height/2-(b.y/2)),
+      x: n.x - (c.width/2-(b.x/2)),
+      y: n.y - (c.height/2-(b.y/2)),
     }
 }

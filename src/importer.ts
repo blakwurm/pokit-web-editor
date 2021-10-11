@@ -21,10 +21,10 @@ export async function parseFolder(files: FileList) {
         } else {
             loaded = v.stream()
         }
-        if (filename = 'cart.json') {
+        if (filename === 'cart.json') {
             cart = loaded
         }
-        if (filename = 'sprites.png') {
+        if (filename === 'sprites.png') {
             console.log('doing image')
             sprites = await loadimage(v)
             console.log('image done')
@@ -67,6 +67,7 @@ export async function parseFolder(files: FileList) {
                 appdata.scenes[k] = v
             }
         }
+        console.log("value of cart", cart);
         appdata.currentScene = cart.defaultScene || appdata.currentScene
         return appdata 
     })

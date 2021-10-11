@@ -5,8 +5,14 @@ import { MapCanvas } from "./MapCanvas";
 
     export let canv: HTMLCanvasElement
     let canvcontainer: HTMLDivElement
-    export let screendims: {x:number, y:number}
+    export let screendims: {width:number, height:number}
     export let mapcanvas: MapCanvas
+    $:{
+        canv.width = screendims.width;
+        canv.height = screendims.height;
+        mapcanvas.dirty = true;
+        console.log("screen dims are", screendims);
+    }
     console.log('canvas is ', canv)
     $:console.log(canv)
     onMount(()=>{
