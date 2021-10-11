@@ -1,7 +1,14 @@
+import { identity } from "../node_modules/svelte/internal";
 import type { EntityStub, Identity, SceneStub, Vector } from "./pokit.types";
 import { appdata, AppData, currentScene } from "./stores";
 import * as util from './utils'
 
+const POKIT_DIMS = {
+    x: 320,
+    y: 320
+}
+
+let parents = {} as Record<string,EntityStub>;
 export class MapCanvas {
     ctx: CanvasRenderingContext2D;
     state: AppData;
@@ -50,11 +57,9 @@ export class MapCanvas {
         for(let [s, a] of Object.entries(this.scene.entities)) {
             entities.push(...this.mergeEntities(s,a));
         }
-        console.log(entities)
+        entities.forEach((x)=>parents[x.components.identity.id] = x);
         entities = entities.filter(e=>e.components.identity.z >= this.depth);
-        console.log(entities)
         entities.sort((a,b)=>a.components.identity.position.z-b.components.identity.position.z);
-        console.log(entities)
         entities.forEach(this.renderEntity.bind(this));
     }
     renderdebug() {
@@ -82,38 +87,68 @@ export class MapCanvas {
 
     mergeEntities(stubId: string, instances: Identity[]) {
         let entities = this.state.entities;
+        entities["__DEFAULT_PARENT__"] = {
+            inherits: [],
+            components: {
+                identity: util.defaultParent,
+                __transform: util.defaultParent
+            }
+        };
+        parents["__DEFAULT_PARENT__"] = entities["__DEFAULT_PARENT__"]
+
         let index = 0;
         return instances.map(i=>{
             let lineage = resolveLineage(stubId, entities);
             let identity = i;
             identity.id = identity.id || stubId + index.toString();
-            index++;
             entities["__POKIT_IDENTITY__"] = {
                 inherits: [],
                 components: {
                     identity: i
                 }
             };
-            entities["__DEFAULT_PARENT__"] = {
-                inherits: [],
-                components: {
-                    identity: util.defaultParent
-                }
-            };
             lineage.push("__DEFAULT_PARENT__")
             lineage.unshift("__POKIT_IDENTITY__");
-            return applyInheritance(lineage, entities);
+            index++;
+            return addMeta(applyInheritance(lineage, entities), index);
         }) as EntityStub[];
     }
 
-    renderEntity(entity: EntityStub) {
-        let identity: Identity = entity.components.identity;
-        // let posX = pokit2screen(identity.position.x - this.scroll.x, identity.bounds.x);
-        // let posY = pokit2screen(identity.position.y - this.scroll.y, identity.bounds.y);
-        let pos = util.pokit2screen(this.ctx.canvas, identity.position, identity.bounds)
-        pos = util.vectorSub(pos, this.scroll)
-        this.ctx.fillRect(pos.x, pos.y, identity.bounds.x, identity.bounds.y);
+    renderEntity(entity:EntityStub) {
+        if(entity.components.camera) this.renderCameraEntity(entity);
+        else this.renderGeneralEntity(entity);
+    }
+
+    renderCameraEntity(entity: EntityStub) {
+        let transform = entity.components.__transform as Transform;
+        let identity = entity.components.identity as Identity;
+        let bounds = transform.globalBounds;
+        if(entity.components.camera.isMainCamera) bounds = POKIT_DIMS;
+        let pos = util.pokit2screen(this.ctx.canvas, transform.globalPosition, bounds);
+        pos = util.vectorSub(pos, this.scroll);
+        this.ctx.strokeRect(pos.x, pos.y, bounds.x, bounds.y);
         pos.y -= 30;
+        this.ctx.fillText(identity.id!, pos.x, pos.y);
+    }
+
+    renderGeneralEntity(entity: EntityStub) {
+        if(entity.components.debug) {
+            let color = entity.components.debug.color as [number,number,number,number] ||
+            [255,0,0,255];
+            this.ctx.fillStyle = `rgba(
+                ${color[0]},
+                ${color[1]},
+                ${color[2]},
+                ${color[3]}
+            )`
+        }
+        let transform = entity.components.__transform as Transform;
+        let identity = entity.components.identity as Identity;
+        let pos = util.pokit2screen(this.ctx.canvas, transform.globalPosition, transform.globalBounds)
+        pos = util.vectorSub(pos, this.scroll)
+        this.ctx.fillRect(pos.x, pos.y, transform.globalBounds.x, transform.globalBounds.y);
+        pos.y -= 30;
+        this.ctx.fillStyle = 'black';
         this.ctx.fillText(identity.id!, pos.x, pos.y);
     }
 
@@ -192,4 +227,36 @@ function applyInheritance(lineage: string[], entities: Record<string,EntityStub>
         base = deepMergeNoConcat(base, stub)
     }
     return base as EntityStub;
+}
+
+interface Transform {
+    globalPosition: Vector,
+    globalRotation: number,
+    globalScale: Vector,
+    globalBounds: Vector
+}
+
+function addMeta(e: EntityStub, index: number) {
+    let i = e.components.identity as Identity;
+    let transform = {
+        get globalPosition() {
+            let parent = parents[e.components.identity.parent || "__DEFAULT_PARENT__"].components.__transform as Transform;
+            let scaledPos = util.vectorMultiply(i.position, parent.globalScale);
+            return util.vectorAdd(util.rotateVector(scaledPos, parent.globalRotation), parent.globalPosition);
+        },
+        get globalRotation() {
+            let parent = parents[e.components.identity.parent || "__DEFAULT_PARENT__"].components.__transform as Transform;
+            return i.rotation + parent.globalRotation;
+        },
+        get globalScale() {
+            let parent = parents[e.components.identity.parent || "__DEFAULT_PARENT__"].components.__transform as Transform;
+            return util.vectorMultiply(i.scale, parent.globalScale);
+        },
+        get globalBounds() {
+            return util.vectorMultiply(i.bounds, transform.globalScale);
+        }
+    };
+    e.components.__transform = transform;
+    e.components.__meta = {index}
+    return e;
 }
