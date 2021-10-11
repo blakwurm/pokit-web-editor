@@ -30,10 +30,12 @@ export class MapCanvas {
     }
 
     updateState(a: AppData) {
+      console.log('updating current state')
         this.state = a;
     }
 
     updateCurrentScene(s: SceneStub) {
+      console.log('updating current scene')
         this.scene = s;
         this.dirty = true;
     }
@@ -50,6 +52,28 @@ export class MapCanvas {
         entities = entities.filter(e=>e.components.identity.z >= this.depth);
         entities.sort((a,b)=>a.components.identity.position.z-b.components.identity.position.z);
         entities.forEach(this.renderEntity);
+    }
+    renderdebug() {
+      // Set line width
+        this.ctx.lineWidth = 10;
+
+        // Wall
+        // Set line width
+        this.ctx.lineWidth = 10;
+
+        // Wall
+        this.ctx.strokeRect(75, 140, 150, 110);
+
+        // Door
+        this.ctx.fillRect(130, 190, 40, 60);
+
+        // Roof
+        this.ctx.beginPath();
+        this.ctx.moveTo(50, 140);
+        this.ctx.lineTo(150, 60);
+        this.ctx.lineTo(250, 140);
+        this.ctx.closePath();
+        this.ctx.stroke();
     }
 
     mergeEntities(stubId: string, instances: Identity[]) {

@@ -18,9 +18,10 @@ import { MapCanvas } from "./MapCanvas";
 <div id="canvcontainer" bind:this={canvcontainer}></div>
 
 <style>
-    #canvcontainer { background: blue; }
-    canvas {
+    #canvcontainer {
         background: red;
+    }
+    canvas {
         display: block;
         height: 100%;
         width: 100%;

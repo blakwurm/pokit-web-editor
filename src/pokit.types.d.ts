@@ -13,11 +13,13 @@ export interface CartManifest {
   export interface SceneStub {
     systems?: string[];
     entities: { [stub:string]: Identity[] };
+    timestamp?: number;
   }
   
   export interface EntityStub {
     inherits: string[];
     components: any;
+    timestamp?: number;
   }
 
   export interface Identity {

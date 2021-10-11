@@ -2,6 +2,7 @@
 	import MapView from './MapView.svelte'
 	import InspectorView from './InspectorView.svelte'
 	import PaletteView from './PaletteView.svelte'
+	import FileView from './FileView.svelte'
 	export let name: string;
 	import * as util from './util.js'
 import { MapCanvas } from './MapCanvas';
@@ -11,13 +12,18 @@ import { MapCanvas } from './MapCanvas';
 	canv.width = 300
 
 	let mapcanvas = new MapCanvas(canv)
+	//@ts-ignore
+	window.mapcanvas = mapcanvas
 
 	let views = {
+		file: FileView,
 		map: MapView,
 		inspector: InspectorView,
 		palette: PaletteView
 	}
-	let activeView = 'map'
+	let activeView = location.hash.substr(1) || 'file'
+	console.log(location.hash)
+	$: location.hash = "#" + activeView
 
 	let innerWidth = window.innerWidth
 	let innerHeight = window.innerHeight
