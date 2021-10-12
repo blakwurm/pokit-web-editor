@@ -116,7 +116,7 @@ export class MapCanvas {
     }
 
     mergeEntities(stubId: string, instances: Identity[]) {
-        let entities = this.state.entities;
+        let entities = deepClone(this.state.entities);
         entities["__DEFAULT_PARENT__"] = {
             inherits: [],
             components: {
@@ -150,11 +150,13 @@ export class MapCanvas {
         let prio = 0;
         if(entity.components.camera) {
             [pos, bounds] = this.renderCameraEntity(entity);
+            prio = -Infinity;
         }
         else {
             [pos, bounds] = this.renderGeneralEntity(entity);
+            prio = -(bounds.x*bounds.y);
         }
-        this.makeTouchZone(entity, Object.assign({},pos), bounds, -Infinity)
+        this.makeTouchZone(entity, Object.assign({},pos), bounds, prio)
         pos.y -= 30;
         this.ctx.fillStyle='black';
         this.ctx.fillText(identity.id!, pos.x, pos.y);
