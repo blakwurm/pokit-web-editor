@@ -17,7 +17,7 @@ import { appdata } from "./stores";
             <div class="thingname">{k}</div>
             <div class="fauximage"></div>
             <ul>
-                <button>Make Active Brush</button>
+                <button on:click={()=>$appdata.currentBrush=k}>Make Active Brush</button>
                 <button>Edit</button>
             </ul>
         </li>
