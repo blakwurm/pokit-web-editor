@@ -387,9 +387,9 @@ export default class SpatialHashMap {
  * 
  * @param n pokit-space point to be translated
  * @param b width and height of entity
- * @returns 
+ * @returns point transformed to canvas-space
  */
-export function pokit2screen(c: HTMLCanvasElement, n: Vector, b: Vector = {x:0,y:0}) {
+export function pokit2canvas(c: HTMLCanvasElement, n: Vector, b: Vector = {x:0,y:0}) {
     // return n + (this.ctx.canvas.width/2-(b/2))
     return {
       x: n.x + (c.width/2-(b.x/2)),
@@ -399,14 +399,60 @@ export function pokit2screen(c: HTMLCanvasElement, n: Vector, b: Vector = {x:0,y
 
 /**
  * 
- * @param n screen-space point to be translated
+ * @param n canvas-space point to be translated
  * @param b width and height of entity
- * @returns 
+ * @returns point transformed to pokit-space
  */
-export function screen2pokit(c: HTMLCanvasElement, n: Vector, b: Vector = {x:0,y:0}) {
+export function canvas2pokit(c: HTMLCanvasElement, n: Vector, b: Vector = {x:0,y:0}) {
     // return n + (this.ctx.canvas.width/2-(b/2))
     return {
       x: n.x - (c.width/2-(b.x/2)),
       y: n.y - (c.height/2-(b.y/2)),
     }
+}
+
+/**
+ * 
+ * @param c the canvas
+ * @param p the screen-space point to be transformed
+ * @returns point transformed to canvas-space
+ */
+export function screen2canvas(c: HTMLCanvasElement, p: Vector) {
+  let translated = vectorSub(p, {x:c.clientLeft,y:c.clientTop});
+  let scaled = vectorDivide(translated, {x:c.clientWidth, y:c.clientHeight});
+  return vectorMultiply(scaled, {x:c.width, y:c.height});
+}
+
+/**
+ * 
+ * @param c the canvas
+ * @param p the canvas-space point to be transformed
+ * @returns point transformed to screen-space
+ */
+export function canvas2screen(c: HTMLCanvasElement, p: Vector) {
+  let scaled = vectorDivide(p, {x:c.width, y:c.height});
+  let translated = vectorAdd(scaled, {x:c.clientLeft, y:c.clientTop})
+  return vectorMultiply(translated, {x:c.clientWidth, y:c.clientHeight});
+}
+
+/**
+ * 
+ * @param c the canvas
+ * @param p the screen-space point to be transformed
+ * @returns point transformed to pokit-space
+ */
+export function screen2pokit(c: HTMLCanvasElement, p: Vector, b?: Vector) {
+  let s2c = screen2canvas(c, p);
+  return canvas2pokit(c, s2c, b);
+}
+
+/**
+ * 
+ * @param c the canvas
+ * @param p the pokit-space point to be transformed
+ * @returns point transformed to screen-space
+ */
+export function pokit2screen(c: HTMLCanvasElement, p: Vector, b?: Vector) {
+  let p2c = pokit2canvas(c, p, b);
+  return canvas2screen(c, p2c);
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
 import { onMount } from "svelte";
-import { MapCanvas } from "./MapCanvas";
+import type { MapCanvas } from "./MapCanvas";
 
 
     export let canv: HTMLCanvasElement
@@ -25,7 +25,7 @@ import { MapCanvas } from "./MapCanvas";
 
 <style>
     #canvcontainer {
-        background: red;
+        background: white;
     }
     canvas {
         display: block;

@@ -8,6 +8,14 @@ const POKIT_DIMS = {
     y: 320
 }
 
+interface TouchZone {
+    entity?: EntityStub;
+    priority: number;
+    origin: Vector;
+    bounds: Vector;
+    callback: Function;
+}
+
 let parents = {} as Record<string,EntityStub>;
 export class MapCanvas {
     ctx: CanvasRenderingContext2D;
@@ -15,6 +23,8 @@ export class MapCanvas {
     scene: SceneStub;
     scroll: Vector;
     depth: number;
+
+    touchZones: TouchZone[];
 
     dirty = true;
     constructor(c: HTMLCanvasElement) {
@@ -25,6 +35,25 @@ export class MapCanvas {
         this.depth = 0;
         appdata.subscribe(this.updateState.bind(this));
         currentScene.subscribe(this.updateCurrentScene.bind(this));
+
+        this.touchZones = [];
+
+        c.addEventListener('click',(e)=>{
+            let p = util.screen2canvas(c, util.vectorSub(e, {x:20,y:20}));
+            for(let zone of this.touchZones.sort((a,b)=>b.priority-a.priority)) {
+                let end = util.vectorAdd(zone.origin, zone.bounds);
+                console.log(zone.origin,end, zone.entity?.components.identity.id);
+                if( p.x >= zone.origin.x &&
+                    p.y >= zone.origin.y &&
+                    p.x <= end.x &&
+                    p.y <= end.y) {
+                    
+                        zone.callback();
+                        return;
+                }
+            }
+        });
+
         this.raf()
     }
 
@@ -48,7 +77,7 @@ export class MapCanvas {
     }
 
     render() {
-      console.log('scene and state are', this.scene, this.state)
+        this.touchZones = [];
         if (!this.scene || !this.state) {
           return
         }
@@ -62,6 +91,7 @@ export class MapCanvas {
         entities.sort((a,b)=>a.components.identity.position.z-b.components.identity.position.z);
         entities.forEach(this.renderEntity.bind(this));
     }
+
     renderdebug() {
       // Set line width
         this.ctx.lineWidth = 10;
@@ -115,20 +145,29 @@ export class MapCanvas {
     }
 
     renderEntity(entity:EntityStub) {
-        if(entity.components.camera) this.renderCameraEntity(entity);
-        else this.renderGeneralEntity(entity);
+        let pos: Vector, bounds: Vector;
+        let identity = entity.components.identity as Identity;
+        let prio = 0;
+        if(entity.components.camera) {
+            [pos, bounds] = this.renderCameraEntity(entity);
+        }
+        else {
+            [pos, bounds] = this.renderGeneralEntity(entity);
+        }
+        this.makeTouchZone(entity, Object.assign({},pos), bounds, -Infinity)
+        pos.y -= 30;
+        this.ctx.fillStyle='black';
+        this.ctx.fillText(identity.id!, pos.x, pos.y);
     }
 
     renderCameraEntity(entity: EntityStub) {
         let transform = entity.components.__transform as Transform;
-        let identity = entity.components.identity as Identity;
         let bounds = transform.globalBounds;
         if(entity.components.camera.isMainCamera) bounds = POKIT_DIMS;
-        let pos = util.pokit2screen(this.ctx.canvas, transform.globalPosition, bounds);
+        let pos = util.pokit2canvas(this.ctx.canvas, transform.globalPosition, bounds);
         pos = util.vectorSub(pos, this.scroll);
         this.ctx.strokeRect(pos.x, pos.y, bounds.x, bounds.y);
-        pos.y -= 30;
-        this.ctx.fillText(identity.id!, pos.x, pos.y);
+        return [pos, bounds] 
     }
 
     renderGeneralEntity(entity: EntityStub) {
@@ -139,17 +178,25 @@ export class MapCanvas {
                 ${color[0]},
                 ${color[1]},
                 ${color[2]},
-                ${color[3]}
+                ${color[3]/255}
             )`
         }
         let transform = entity.components.__transform as Transform;
-        let identity = entity.components.identity as Identity;
-        let pos = util.pokit2screen(this.ctx.canvas, transform.globalPosition, transform.globalBounds)
+        let pos = util.pokit2canvas(this.ctx.canvas, transform.globalPosition, transform.globalBounds)
         pos = util.vectorSub(pos, this.scroll)
         this.ctx.fillRect(pos.x, pos.y, transform.globalBounds.x, transform.globalBounds.y);
-        pos.y -= 30;
-        this.ctx.fillStyle = 'black';
-        this.ctx.fillText(identity.id!, pos.x, pos.y);
+        return [pos, transform.globalBounds];
+    }
+
+    makeTouchZone(entity: EntityStub, origin: Vector, bounds: Vector, priority: number) {
+        let tz = {
+            entity,
+            priority,
+            origin,
+            bounds,
+            callback: ()=>console.log("touched", entity.components.identity.id)
+        }
+        this.touchZones.push(tz);
     }
 
     translate(x: number, y: number, z?: number) {
