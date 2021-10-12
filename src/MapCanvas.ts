@@ -158,8 +158,7 @@ export class MapCanvas {
         }
         this.makeTouchZone(entity, Object.assign({},pos), bounds, prio)
         pos.y -= 30;
-        this.ctx.fillStyle='black';
-        this.ctx.fillText(identity.id!, pos.x, pos.y);
+        this.renderLabel(pos, identity.id!);
     }
 
     renderCameraEntity(entity: EntityStub) {
@@ -188,6 +187,15 @@ export class MapCanvas {
         pos = util.vectorSub(pos, this.scroll)
         this.ctx.fillRect(pos.x, pos.y, transform.globalBounds.x, transform.globalBounds.y);
         return [pos, transform.globalBounds];
+    }
+
+    renderLabel(pos: Vector, txt: string) {
+        this.ctx.font = '16px sans-serif'
+        let metrics = this.ctx.measureText(txt);
+        this.ctx.fillStyle = 'rgba(0,0,0,0.75)'
+        this.ctx.fillRect(pos.x, pos.y, metrics.width + 7, 21)
+        this.ctx.fillStyle = 'white'
+        this.ctx.fillText(txt, pos.x+3, pos.y+15);
     }
 
     makeTouchZone(entity: EntityStub, origin: Vector, bounds: Vector, priority: number) {
