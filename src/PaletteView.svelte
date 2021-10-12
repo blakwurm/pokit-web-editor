@@ -1,4 +1,6 @@
 <script lang="ts">
+import { appdata } from "./stores";
+
     let demostuff = {
         a: 'thing',
         b: 'another',
@@ -10,9 +12,9 @@
 </script>
 
 <ul class="palettelist">
-    {#each Object.entries(demostuff) as [k,v], i (k)}
+    {#each Object.entries($appdata.entities) as [k,v]}
         <li class="paletteoption">
-            <div class="thingname">{v}</div>
+            <div class="thingname">{k}</div>
             <div class="fauximage"></div>
             <ul>
                 <button>Make Active Brush</button>
