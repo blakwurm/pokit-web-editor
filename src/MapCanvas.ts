@@ -59,6 +59,7 @@ export class MapCanvas {
                     appdata.update((a)=>{
                         let s = a.scenes[a.currentScene];
                         s.entities[a.currentBrush] = s.entities[a.currentBrush] || [];
+                        if(a.entities[a.currentBrush].components.camera?.isMainCamera) s.entities[a.currentBrush] = [];
                         s.entities[a.currentBrush].push({
                             position: util.screen2pokit(this.ctx.canvas, util.vectorSub(e, {x:20,y:20})),
                         } as Identity);
@@ -152,7 +153,7 @@ export class MapCanvas {
             lineage.push("__DEFAULT_PARENT__")
             lineage.unshift("__POKIT_IDENTITY__");
             index++;
-            return addMeta(applyInheritance(lineage, entities), index);
+            return addMeta(applyInheritance(lineage, entities), index, stubId);
         }) as EntityStub[];
     }
 
@@ -216,7 +217,13 @@ export class MapCanvas {
             priority,
             origin,
             bounds,
-            callback: ()=>console.log("touched", entity.components.identity.id)
+            callback: ()=>{
+                let meta = entity.components.__meta;
+                appdata.update((a)=>{
+                    a.inspecting=[a.currentScene, meta.stub, meta.index]
+                    return a;
+                })
+            }
         }
         this.touchZones.push(tz);
     }
@@ -305,7 +312,7 @@ interface Transform {
     globalBounds: Vector
 }
 
-function addMeta(e: EntityStub, index: number) {
+function addMeta(e: EntityStub, index: number, stub: string) {
     let i = e.components.identity as Identity;
     let transform = {
         get globalPosition() {
@@ -326,6 +333,6 @@ function addMeta(e: EntityStub, index: number) {
         }
     };
     e.components.__transform = transform;
-    e.components.__meta = {index}
+    e.components.__meta = {index,stub}
     return e;
 }
