@@ -23,3 +23,7 @@ main button {
 	border: 5px double white;
 	padding: 2px;
 }
+
+input[type=text] {
+	color: #000;
+}

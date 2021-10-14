@@ -79,12 +79,11 @@ export class MapCanvas {
     }
 
     updateState(a: AppData) {
-      console.log('updating current state')
         this.state = a;
+        this.dirty = true;
     }
 
     updateCurrentScene(s: SceneStub) {
-      console.log('updating current scene')
         this.scene = s;
         this.dirty = true;
     }

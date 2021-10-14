@@ -54,8 +54,11 @@ export async function parseFolder(files: FileList) {
             appdata.spritemap = sprites
             Object.assign(appdata.manifest, cart)
             // TODO: add importing of other props when not default name
-            if(Object.keys(entities).length) appdata.entities = {};
             if(Object.keys(scenes).length) appdata.scenes = {};
+            if(Object.keys(entities).length) {
+                appdata.entities = {};
+                appdata.currentBrush = Object.keys(entities)[0];
+            }
         }
         for (let [k,v] of Object.entries(entities)) {
             let ts = appdata.entities[k]?.timestamp || 0
