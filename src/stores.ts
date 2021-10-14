@@ -11,12 +11,18 @@ export interface AppData {
     scenes: Record<string, SceneStub>
     currentScene: string
     currentBrush: string
+    currentTool: ToolType
     inspecting: [string, string, number]
     isDragging: boolean
 }
 
 export function loads() {
 
+}
+
+export enum ToolType {
+    BRUSH,
+    POINTER
 }
 
 export let appdata = love.undoStore(writable({
@@ -33,6 +39,7 @@ export let appdata = love.undoStore(writable({
         defaultscene: {systems: {}, entities:{}} as SceneStub
     },
     currentBrush: 'defaultbrush',
+    currentTool: ToolType.BRUSH,
     entities: {
         defaultbrush: {inherits: [''], components: {}} as EntityStub
     },

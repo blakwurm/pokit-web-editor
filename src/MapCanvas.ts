@@ -1,6 +1,6 @@
 import { identity } from "../node_modules/svelte/internal";
 import type { EntityStub, Identity, SceneStub, Vector } from "./pokit.types";
-import { appdata, AppData, currentScene } from "./stores";
+import { appdata, AppData, currentScene, ToolType } from "./stores";
 import * as util from './utils'
 
 const POKIT_DIMS = {
@@ -39,18 +39,31 @@ export class MapCanvas {
         this.touchZones = [];
 
         c.addEventListener('click',(e)=>{
-            let p = util.screen2canvas(c, util.vectorSub(e, {x:20,y:20}));
-            for(let zone of this.touchZones.sort((a,b)=>b.priority-a.priority)) {
-                let end = util.vectorAdd(zone.origin, zone.bounds);
-                console.log(zone.origin,end, zone.entity?.components.identity.id);
-                if( p.x >= zone.origin.x &&
-                    p.y >= zone.origin.y &&
-                    p.x <= end.x &&
-                    p.y <= end.y) {
-                    
-                        zone.callback();
-                        return;
-                }
+            switch(this.state.currentTool) {
+                case ToolType.POINTER: 
+                    let p = util.screen2canvas(c, util.vectorSub(e, {x:20,y:20}));
+                    for(let zone of this.touchZones.sort((a,b)=>b.priority-a.priority)) {
+                        let end = util.vectorAdd(zone.origin, zone.bounds);
+                        console.log(zone.origin,end, zone.entity?.components.identity.id);
+                        if( p.x >= zone.origin.x &&
+                            p.y >= zone.origin.y &&
+                            p.x <= end.x &&
+                            p.y <= end.y) {
+                            
+                                zone.callback();
+                                return;
+                        }
+                    }
+                    break;
+                case ToolType.BRUSH:
+                    appdata.update((a)=>{
+                        let s = a.scenes[a.currentScene];
+                        s.entities[a.currentBrush] = s.entities[a.currentBrush] || [];
+                        s.entities[a.currentBrush].push({
+                            position: util.screen2pokit(this.ctx.canvas, util.vectorSub(e, {x:20,y:20})),
+                        } as Identity);
+                        return a;
+                    })
             }
         });
 
