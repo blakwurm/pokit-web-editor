@@ -39,7 +39,7 @@ export let appdata = love.undoStore(writable({
         defaultscene: {systems: {}, entities:{}} as SceneStub
     },
     currentBrush: 'defaultbrush',
-    currentTool: ToolType.BRUSH,
+    currentTool: ToolType.POINTER,
     entities: {
         defaultbrush: {inherits: [''], components: {}} as EntityStub
     },

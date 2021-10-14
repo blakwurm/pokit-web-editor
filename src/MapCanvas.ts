@@ -169,6 +169,12 @@ export class MapCanvas {
             [pos, bounds] = this.renderGeneralEntity(entity);
             prio = -(bounds.x*bounds.y);
         }
+        let [scene,stub,instance] = this.state.inspecting;
+        if(scene === this.state.currentScene &&
+             stub === entity.components.__meta.stub &&
+             instance === entity.components.__meta.index) {
+                this.renderBorder(pos, bounds);
+             }
         this.makeTouchZone(entity, Object.assign({},pos), bounds, prio)
         pos.y -= 30;
         this.renderLabel(pos, identity.id!);
@@ -180,6 +186,8 @@ export class MapCanvas {
         if(entity.components.camera.isMainCamera) bounds = POKIT_DIMS;
         let pos = util.pokit2canvas(this.ctx.canvas, transform.globalPosition, bounds);
         pos = util.vectorSub(pos, this.scroll);
+        this.ctx.strokeStyle = "black";
+        this.ctx.lineWidth = 1;
         this.ctx.strokeRect(pos.x, pos.y, bounds.x, bounds.y);
         return [pos, bounds] 
     }
@@ -202,6 +210,12 @@ export class MapCanvas {
         return [pos, transform.globalBounds];
     }
 
+    renderBorder(pos: Vector, bounds: Vector) {
+        this.ctx.strokeStyle = "purple";
+        this.ctx.lineWidth = 3;
+        this.ctx.strokeRect(pos.x, pos.y, bounds.x, bounds.y);
+    }
+
     renderLabel(pos: Vector, txt: string) {
         this.ctx.font = '16px sans-serif'
         let metrics = this.ctx.measureText(txt);
@@ -222,7 +236,8 @@ export class MapCanvas {
                 appdata.update((a)=>{
                     a.inspecting=[a.currentScene, meta.stub, meta.index]
                     return a;
-                })
+                });
+                this.dirty = true;
             }
         }
         this.touchZones.push(tz);
