@@ -2,6 +2,7 @@
   import { text } from "svelte/internal";
   import {currentBrush} from "./stores"
   import ObjectEditor from "./ObjectEditor.svelte";
+  import ComponentView from './typefields/ComponentView.svelte'
   import * as love from "immer-loves-svelte";
 
   function makeComponentStore(name: string) {
@@ -9,22 +10,16 @@
       x.components[name] 
     )
   }
-
-  let fuck = true
-  let fuckvalue: string | undefined = null
-  $:console.log(fuck)
+$:console.log($currentBrush)
 </script>
 
-<ul class="componentlist">
-    <input type="checkbox" bind:checked={fuck}>
-  {#each Object.entries($currentBrush.components) as [name,]}
-    <li class="componentview">
-      <h4>{name}</h4>
-      <ObjectEditor id={name} store={makeComponentStore(name)}/>
-    </li>
+
+    <ComponentView entitystore={currentBrush}></ComponentView>
+<!-- <ul class="componentlist">
+  {#each Object.entries($currentBrush.components) as [name,component]}
     <hr />
-  {/each}
+  {/each} -->
   <label for="newcomponent">Add component: </label>
   <input id="newcomponent" type="text" />
   <button>+</button>
-</ul>
+<!-- </ul> -->

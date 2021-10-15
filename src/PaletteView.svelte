@@ -22,6 +22,9 @@ import { appdata } from "./stores";
             </ul>
         </li>
     {/each}
+    <!-- current brush: {$appdata.currentBrush}
+    testing: {$appdata.scenes['default'].entities['guy'][0].id} -->
+    <button on:click="{()=>$appdata.scenes['default'].entities['guy'][0].id = 'fuckoff'}">ya</button>
 </ul>
 
 <style>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import MapView from './MapView.svelte'
-	import InspectorView from './InspectorView.svelte'
+	import InspectorView from './InspectorNew.svelte'
 	import PaletteView from './PaletteView.svelte'
 	import FileView from './FileView.svelte'
 	export let name: string;
