@@ -5,13 +5,14 @@
 
   let nest = new NestedStore(appdata, "entities", $appdata.currentBrush, "components");
 
-  $:inspecting = new NestedStore(appdata, 'scenes', $appdata.inspecting[0], 'entities', $appdata.inspecting[1], $appdata.inspecting[2])
+  let key: string = "newcomp"
+  // $:inspecting = new NestedStore(appdata, 'scenes', $appdata.inspecting[0], 'entities', $appdata.inspecting[1], $appdata.inspecting[2])
 </script>
 
-{#if $inspecting} 
+<!-- {#if $inspecting} 
   <h3>Selected In Scene</h3>
   <ObjectEditor store={inspecting}></ObjectEditor>
-{/if}
+{/if} -->
 <h3>Active Brush</h3>
 {#each Object.entries($currentBrush.components) as [c,v]}
   <!-- <h4>{c.toLocaleUpperCase()}</h4> -->
@@ -19,6 +20,8 @@
     <ObjectEditor store={nest.drill(c)} />
   </div>
 {/each}
+<button on:click={()=>$nest[key] = {}}>Add Component:</button>
+<input type="text" bind:value={key} />
 <!-- <ul class="componentlist">
   {#each Object.entries($currentBrush.components) as [name,component]}
     <hr />

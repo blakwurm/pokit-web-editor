@@ -44,9 +44,16 @@ import { iterate_enum, ValueType } from "../stores";
 
   let type: ValueType = ValueType.STRING;
   let valueMap=["",0,false,[],{}]
-  function updateArr() {
+  function addArrItem() {
     store.update(a=>{
       a.push(valueMap[type]);
+      return a;
+    })
+  }
+
+  function delArrItem(i: number) {
+    store.update(a=>{
+      a.splice(i,1);
       return a;
     })
   }
@@ -66,12 +73,13 @@ import { iterate_enum, ValueType } from "../stores";
     {/if}
     {#if thingy.k}<button on:click={()=>moveup(thingy.k)}>▲</button>{/if}
     {#if thingy.k < $store.length-1}<button on:click={()=>movedown(thingy.k)}>▼</button>{/if}
+    <button on:click={()=>delArrItem(thingy.k)}>X</button>
   </li>
   {/each}
 
   </ol>
   <div class="additioner">
-    <button on:click={updateArr}>Add Item:</button>
+    <button on:click={addArrItem}>Add Item:</button>
     <select name="opttypes" id="opttypes" bind:value={type}>
       {#each iterate_enum(ValueType) as [k,v]}
         <option value={v}>{k}</option>

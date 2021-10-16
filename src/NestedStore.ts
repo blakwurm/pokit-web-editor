@@ -38,6 +38,7 @@ export default class NestedStore<T> implements UndoRedoStore<T> {
   private getParent(b: pojo): pojo {
     let ref = b;
     for(let i = 0; i < this.path.length-1; i++) {
+      console.log(ref, this.path[i]);
       ref = ref[this.path[i]];
     }
     return ref;

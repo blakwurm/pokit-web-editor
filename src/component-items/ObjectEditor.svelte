@@ -24,6 +24,12 @@
   let type: ValueType = ValueType.STRING;
 
   let valueMap=["",0,false,[],{}]
+  function deletekey(key: string) {
+    store.update(x=>{
+      delete x[key];
+      return x;
+    })
+  }
 </script>
 
 <!-- <div>{JSON.stringify(store.path)}</div> -->
@@ -35,6 +41,7 @@
     {:else}
       <svelte:component this={map[t]} store={s} label={k} />
     {/if}
+    <button on:click={()=>delete $store[k]}>X</button>
   {/each}
   <div class="additioner">
     <button on:click={()=>$store[key]=valueMap[type]}>Add Item:</button>

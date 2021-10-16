@@ -76,7 +76,6 @@ export let currentBrush = love.subStore(appdata, (a:AppData)=>{
    return  a.entities[a.currentBrush]
 })
 
-export let nested = new NestedStore<boolean>(appdata, "entities","defaultbrush","components","fak","blob")
 
 export let currentBrushName = love.subStore(appdata, (a:AppData)=>a.currentBrush)
 
