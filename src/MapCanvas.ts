@@ -23,6 +23,8 @@ export class MapCanvas {
     scene: SceneStub;
     scroll: Vector;
     depth: number;
+    last: Vector;
+    mDown: boolean;
 
     touchZones: TouchZone[];
 
@@ -61,12 +63,27 @@ export class MapCanvas {
                         s.entities[a.currentBrush] = s.entities[a.currentBrush] || [];
                         if(a.entities[a.currentBrush].components.camera?.isMainCamera) s.entities[a.currentBrush] = [];
                         s.entities[a.currentBrush].push({
-                            position: util.screen2pokit(this.ctx.canvas, util.vectorSub(e, {x:20,y:20})),
+                            position: util.vectorAdd(this.scroll, util.screen2pokit(this.ctx.canvas, util.vectorSub(e, {x:20,y:20}))),
                         } as Identity);
                         return a;
                     })
             }
         });
+        c.addEventListener('mousedown', (e)=>{
+            e.preventDefault();
+            this.last = util.screen2canvas(c, e);
+            this.mDown = true;
+        })
+        c.addEventListener('mouseup', ()=>this.mDown=false);
+        c.addEventListener('mousemove', (e)=>{
+            if(this.state.currentTool !== ToolType.PAN || !this.mDown) return;
+            let scaled = util.screen2canvas(c, e);
+            let delta = util.vectorSub(this.last, scaled);
+            this.scroll = util.vectorAdd(this.scroll, delta);
+            this.last = scaled;
+            this.dirty = true;
+            console.log(this.scroll, this.mDown, this.state.currentTool);
+        })
 
         this.raf()
     }
