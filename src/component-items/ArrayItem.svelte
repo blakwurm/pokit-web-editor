@@ -23,13 +23,23 @@ import { iterate_enum, ValueType } from "../stores";
     })
   }
   let currentarray = $store
-  function swapinstore(a:number, b:number) {
-    let newarray = [...currentarray]
-    let av = newarray[a];
-    let bv = newarray[b];
-    newarray[b]=av
-    newarray[a]=bv
-    store.set(newarray)
+  
+  function movedown(i: number) {
+    let value = $store[i]
+    store.update(v=>{
+      v.splice(i,1);
+      v.splice(i+1,0,value);
+      return v;
+    })
+  }
+
+  function moveup(i: number) {
+    let value = $store[i];
+    store.update(v=>{
+      v.splice(i,1);
+      v.splice(i-1, 0, value);
+      return v;
+    })
   }
 
   let type: ValueType = ValueType.STRING;
@@ -54,8 +64,8 @@ import { iterate_enum, ValueType } from "../stores";
     {:else}
       <svelte:component this={map[thingy.t]} store={thingy.s} label={thingy.k} />
     {/if}
-    <button on:click={()=>swapinstore(thingy.v, thingy.v+1)}>up</button>
-    <button on:click={()=>swapinstore(thingy.v, thingy.v-1)}>down</button>
+    {#if thingy.k}<button on:click={()=>moveup(thingy.k)}>▲</button>{/if}
+    {#if thingy.k < $store.length-1}<button on:click={()=>movedown(thingy.k)}>▼</button>{/if}
   </li>
   {/each}
 
