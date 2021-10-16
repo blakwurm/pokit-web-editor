@@ -2,7 +2,7 @@
   import NestedStore from "./NestedStore"
   import ObjectEditor from "./component-items/ObjectEditor.svelte"
   import {appdata, currentBrush} from "./stores"
-  import { deepClone, defaultParent } from "./utils";
+  import { deepClone, defaultParentNoGlobals } from "./utils";
   import { applyInheritance, resolveLineage } from "./MapCanvas"
 import type { EntityStub } from "./pokit.types";
 import ArrayItem from "./component-items/ArrayItem.svelte";
@@ -13,7 +13,7 @@ import ArrayItem from "./component-items/ArrayItem.svelte";
   mut["__DEFAULT_PARENT__"] = {
     inherits: [],
     components: {
-      identity: defaultParent
+      identity: defaultParentNoGlobals
     }
   };
   $:lin = resolveLineage($appdata.currentBrush, mut);

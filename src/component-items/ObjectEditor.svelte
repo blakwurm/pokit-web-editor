@@ -42,8 +42,9 @@
   function addParentOverride(key,value) {
     return ()=>$store[key] = value;
   }
-  function getParentOverrideString(key) {
-    return `Override parent:${key}`
+  function getParentOverrideString(key,value?) {
+    let suffix = value !== undefined ? `(${value})` : "";
+    return `Override parent:${key}${suffix}`
   }
 </script>
 
@@ -61,7 +62,7 @@
     {:else if t==='object' && !Array.isArray(v)}
       <button on:click={addParentOverride(k,{})}>{getParentOverrideString(k)}</button>
     {:else}
-      <button on:click={addParentOverride(k,v)}>{getParentOverrideString(k)}</button>
+      <button on:click={addParentOverride(k,v)}>{getParentOverrideString(k,v)}</button>
     {/if}
   {/each}
   <div class="additioner">
