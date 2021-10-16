@@ -1,6 +1,10 @@
 <script lang="ts">
   import type { Writable } from "svelte/store";
+  import { uuid } from "../utils";
   export let store: Writable<number>;
-  let id: string
+  export let label: string;
+
+  let id = uuid();
 </script>
+<label for={id}>{label}</label>
 <input type="text" id={id} bind:value={$store} />

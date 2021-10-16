@@ -1,10 +1,11 @@
 <script lang="ts">
   import type { Writable } from "svelte/store";
-  export let parent: Record<string, any>
-  export let id: string
-  export let key: string
-  let checked: boolean = parent[key]
-  $:parent[key] = checked
-  $:console.log(parent)
+  import { uuid } from "../utils";
+  export let store: Writable<boolean>;
+  export let label: string;
+
+
+  let id = uuid();
 </script>
-<input type="checkbox" id={id} bind:checked />
+<label for={id}>{label}</label>
+<input type="checkbox" id={id} bind:checked={$store} />

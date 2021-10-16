@@ -4,6 +4,7 @@ import { writable } from 'svelte/store'
 import type {Writable} from 'svelte/store'
 
 import type { CartManifest, EntityStub, SceneStub } from './pokit.types'
+import NestedStore from './NestedStore'
 
 export interface AppData {
     spritemap: HTMLImageElement
@@ -42,7 +43,7 @@ export let appdata = love.undoStore(writable({
     currentBrush: 'defaultbrush',
     currentTool: ToolType.BRUSH,
     entities: {
-        defaultbrush: {inherits: [''], components: {fak:{blob:false}}} as EntityStub
+        defaultbrush: {inherits: [''], components: {fak:{blob:false,notblob:['a','b','c']}}} as EntityStub
     },
     inspecting: ['defaultscene', '', 0],
     isDragging: false
@@ -56,6 +57,8 @@ export let currentBrush = love.subStore(appdata, (a:AppData)=>{
     console.log(a)
    return  a.entities[a.currentBrush]
 })
+
+export let nested = new NestedStore<boolean>(appdata, "entities","defaultbrush","components","fak","blob")
 
 export let currentBrushName = love.subStore(appdata, (a:AppData)=>a.currentBrush)
 
