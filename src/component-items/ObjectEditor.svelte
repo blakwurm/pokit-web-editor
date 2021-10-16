@@ -6,6 +6,7 @@
   import type NestedStore from "../NestedStore";
   import { iterate_enum, ValueType } from "../stores";
   export let store: NestedStore<pojo>
+  export let proto: pojo
   
   
   let map = {
@@ -14,10 +15,11 @@
     string: StringItem,
     boolean: BooleanItem
   }
-  function enumerate(obj: pojo, store: NestedStore<pojo>): [string, any, NestedStore<any>, string][] {
-    console.log(store, obj);
-    return Object.entries(obj).map(([k,v])=>{
-      return [k, v, store.drill(k), typeof v]
+  function enumerate(proto: pojo, obj: pojo, store: NestedStore<pojo>): [string, any, NestedStore<any> | null, string][] {
+    console.log(store, proto);
+    return Object.entries(proto).map(([k,v])=>{
+      if(obj[k]) return [k, v, store.drill(k), typeof v]
+      return [k, v, null, typeof v]
     })
   }
   let key: string = "new_member";
@@ -37,18 +39,30 @@
     }
     $store[key]=valueMap[type];
   }
+  function addParentOverride(key,value) {
+    return ()=>$store[key] = value;
+  }
+  function getParentOverrideString(key) {
+    return `Override parent:${key}`
+  }
 </script>
 
 <!-- <div>{JSON.stringify(store.path)}</div> -->
 <div class="obmodule">
   <div class="nameo">{store.key}</div>
-  {#each enumerate($store, store) as [k, v, s, t]}
-    {#if t==='object' && !Array.isArray(v)}
-      <svelte:self store={s} />
+  {#each enumerate(proto, $store, store) as [k, v, s, t]}
+    {#if $store[k] !== undefined}
+      {#if t==='object' && !Array.isArray(v)}
+        <svelte:self store={s} proto={proto[k]}/>
+      {:else}
+        <svelte:component this={map[t]} store={s} label={k} />
+      {/if}
+      <button on:click={()=>deletekey(k)}>X</button>
+    {:else if t==='object' && !Array.isArray(v)}
+      <button on:click={addParentOverride(k,{})}>{getParentOverrideString(k)}</button>
     {:else}
-      <svelte:component this={map[t]} store={s} label={k} />
+      <button on:click={addParentOverride(k,v)}>{getParentOverrideString(k)}</button>
     {/if}
-    <button on:click={()=>deletekey(k)}>X</button>
   {/each}
   <div class="additioner">
     <button on:click={additem}>Add Item:</button>

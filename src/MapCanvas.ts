@@ -392,7 +392,7 @@ export function deepClone(o: any): any {
   return r;
 }
 
-function resolveLineage(stub: string, entities: Record<string,EntityStub>) {
+export function resolveLineage(stub: string, entities: Record<string,EntityStub>) {
     let order = [stub]
     let obj = entities[stub];
 
@@ -405,7 +405,7 @@ function resolveLineage(stub: string, entities: Record<string,EntityStub>) {
     return order;
 }
 
-function applyInheritance(lineage: string[], entities: Record<string,EntityStub>) {
+export function applyInheritance(lineage: string[], entities: Record<string,EntityStub>) {
     let base = {};
     console.log(lineage);
     while(lineage.length) {

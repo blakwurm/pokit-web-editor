@@ -11,5 +11,3 @@
 </script>
 <label for={id}>{label}</label>
 <input type="number" id={id} bind:value={psudovalue} />
-<button>inc</button>
-<button>dec</button>
