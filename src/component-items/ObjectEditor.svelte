@@ -30,6 +30,13 @@
       return x;
     })
   }
+  function additem() {
+    if(key.toLocaleLowerCase().endsWith('color')) {
+      $store[key] = [0,0,0,0];
+      return;
+    }
+    $store[key]=valueMap[type];
+  }
 </script>
 
 <!-- <div>{JSON.stringify(store.path)}</div> -->
@@ -41,10 +48,10 @@
     {:else}
       <svelte:component this={map[t]} store={s} label={k} />
     {/if}
-    <button on:click={()=>delete $store[k]}>X</button>
+    <button on:click={()=>deletekey(k)}>X</button>
   {/each}
   <div class="additioner">
-    <button on:click={()=>$store[key]=valueMap[type]}>Add Item:</button>
+    <button on:click={additem}>Add Item:</button>
     <select name="opttypes" id="opttypes" bind:value={type}>
       {#each iterate_enum(ValueType) as [k,v]}
         <option value={v}>{k}</option>

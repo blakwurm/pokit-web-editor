@@ -399,7 +399,7 @@ function resolveLineage(stub: string, entities: Record<string,EntityStub>) {
     console.log(order,obj);
 
     for(let inherit of obj.inherits){
-        order.concat(...resolveLineage(inherit, entities))
+        order.push(...resolveLineage(inherit, entities))
     }
 
     return order;
@@ -407,6 +407,7 @@ function resolveLineage(stub: string, entities: Record<string,EntityStub>) {
 
 function applyInheritance(lineage: string[], entities: Record<string,EntityStub>) {
     let base = {};
+    console.log(lineage);
     while(lineage.length) {
         let stub = entities[lineage.pop()!];
         base = deepMergeNoConcat(base, stub)
