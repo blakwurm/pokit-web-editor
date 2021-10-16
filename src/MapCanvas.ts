@@ -40,7 +40,7 @@ export class MapCanvas {
 
         c.addEventListener('click',(e)=>{
             switch(this.state.currentTool) {
-                case ToolType.POINTER: 
+                case ToolType.SELECT: 
                     let p = util.screen2canvas(c, util.vectorSub(e, {x:20,y:20}));
                     for(let zone of this.touchZones.sort((a,b)=>b.priority-a.priority)) {
                         let end = util.vectorAdd(zone.origin, zone.bounds);

@@ -30,8 +30,8 @@ export default class NestedStore<T> implements UndoRedoStore<T> {
     })
   }
 
-  private get(b: pojo): T {
-    let ref = this.getParent(b);
+  private get(b: pojo): T | undefined {
+    let ref = this.getParent(b) || [];
     return ref[this.path[this.path.length-1]];
   }
 

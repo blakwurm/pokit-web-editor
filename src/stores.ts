@@ -24,7 +24,8 @@ export function loads() {
 
 export enum ToolType {
     BRUSH,
-    POINTER
+    SELECT,
+    PAN
 }
 
 export let appdata = love.undoStore(writable({
@@ -65,7 +66,7 @@ export let nested = new NestedStore<boolean>(appdata, "entities","defaultbrush",
 
 export let currentBrushName = love.subStore(appdata, (a:AppData)=>a.currentBrush)
 
-export let inspecting = love.subStore(appdata, (a:AppData)=>a.scenes[a.inspecting[0]].entities[a.inspecting[1]][a.inspecting[2]])
+// export let inspecting = love.subStore(appdata, (a:AppData)=>a.scenes[a.inspecting[0]].entities[a.inspecting[1]][a.inspecting[2]])
 
 export function barblast(garglethis: pojo, store: Writable<EntityStub>) {
     // if (!garglethis) return []

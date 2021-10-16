@@ -4,9 +4,14 @@
   import {appdata, currentBrush} from "./stores"
 
   let nest = new NestedStore(appdata, "entities", $appdata.currentBrush, "components");
+
+  $:inspecting = new NestedStore(appdata, 'scenes', $appdata.inspecting[0], 'entities', $appdata.inspecting[1], $appdata.inspecting[2])
 </script>
 
-<h3>Selected In Scene</h3>
+{#if $inspecting} 
+  <h3>Selected In Scene</h3>
+  <ObjectEditor store={inspecting}></ObjectEditor>
+{/if}
 <h3>Active Brush</h3>
 {#each Object.entries($currentBrush.components) as [c,v]}
   <!-- <h4>{c.toLocaleUpperCase()}</h4> -->
