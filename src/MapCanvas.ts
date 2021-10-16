@@ -29,11 +29,14 @@ export class MapCanvas {
     gridY: number;
     snapX: number;
     snapY: number;
+    presses: Set<string>;
 
     touchZones: TouchZone[];
 
     dirty = true;
+    canUndo = false;
     constructor(c: HTMLCanvasElement) {
+        this.presses = new Set();
         this.ctx = c.getContext('2d', {
             antialias: false
         }) as CanvasRenderingContext2D;
@@ -41,7 +44,7 @@ export class MapCanvas {
         this.depth = 0;
         appdata.subscribe(this.updateState.bind(this));
         currentScene.subscribe(this.updateCurrentScene.bind(this));
-
+        appdata.canUndo.subscribe((v)=>this.canUndo=v)
         this.touchZones = [];
 
         c.addEventListener('click',(e)=>{
@@ -95,6 +98,31 @@ export class MapCanvas {
             this.dirty = true;
             console.log(this.scroll, this.mDown, this.state.currentTool);
         })
+
+        window.onkeydown = (e)=>{
+            console.log(e.key);
+            if(!this.presses.has(e.key))this.presses.add(e.key);
+            else return;
+            switch(e.key) {
+                case "Delete":
+                    appdata.update((a)=>{
+                        let [sceneKey,stubKey,index]=a.inspecting;
+                        let scene = a.scenes[sceneKey];
+                        let stub = scene.entities[stubKey];
+                        stub.splice(index,1);
+                        console.log(stub);
+                        return a;
+                    })
+                case "z":
+                    if(this.presses.has("Control")) {
+                        console.log(this.canUndo);
+                        appdata.undo();
+                        this.dirty = true;
+                    }
+            }
+        }
+
+        window.onkeyup = (e)=>this.presses.delete(e.key);
 
         this.raf()
     }
@@ -181,8 +209,7 @@ export class MapCanvas {
             };
             lineage.push("__DEFAULT_PARENT__")
             lineage.unshift("__POKIT_IDENTITY__");
-            index++;
-            return addMeta(applyInheritance(lineage, entities), index, stubId);
+            return addMeta(applyInheritance(lineage, entities), index++, stubId);
         }) as EntityStub[];
     }
 
