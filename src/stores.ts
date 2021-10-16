@@ -58,7 +58,7 @@ export let appdata = love.undoStore(writable({
     currentBrush: 'defaultbrush',
     currentTool: ToolType.SELECT,
     entities: {
-        defaultbrush: {inherits: [''], components: {
+        defaultbrush: {inherits: [], components: {
             dowap: {color: [255, 255, 234, 200]},
             fak:{blob:false,notblob:['a','b','c']},
             compy:{dillweed:{potsmoke:{true:false}}}}} as EntityStub

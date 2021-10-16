@@ -1,14 +1,28 @@
 <script lang="ts">
-import { appdata } from "./stores";
+import app from "./main";
 
-    let demostuff = {
-        a: 'thing',
-        b: 'another',
-        c: 'ipsum',
-        d: 'set',
-        e: 'amet'
+    import { appdata } from "./stores";
+import { deepClone } from "./utils";
+
+    let key: string = "newstub";
+
+    function cloneStub(name:string) {
+        let newStub = deepClone($appdata.entities[name]);
+        $appdata.entities[key] = newStub;
     }
-
+    function inheritStub(name:string) {
+        $appdata.entities[key] = {
+            inherits: [name],
+            components: {}
+        }
+    }
+    function newStub() {
+        $appdata.entities[key] = {
+            inherits:[],
+            components:{}
+        }
+        console.log($appdata);
+    }
 </script>
 
 <ul class="palettelist">
@@ -18,13 +32,15 @@ import { appdata } from "./stores";
             <div class="fauximage"></div>
             <ul>
                 <button on:click={()=>$appdata.currentBrush=k}>Make Active Brush</button>
-                <button>Edit</button>
+                <button on:click={()=>cloneStub(k)}>Clone</button>
+                <button on:click={()=>inheritStub(k)}>Inherit</button>
             </ul>
         </li>
     {/each}
     <!-- current brush: {$appdata.currentBrush}
     testing: {$appdata.scenes['default'].entities['guy'][0].id} -->
-    <button on:click="{()=>$appdata.scenes['default'].entities['guy'][0].id = 'fuckoff'}">ya</button>
+    <button on:click={newStub}>New stub: </button>
+    <input type="text" bind:value={key}/>
 </ul>
 
 <style>

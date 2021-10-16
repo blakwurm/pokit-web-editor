@@ -152,7 +152,9 @@ export class MapCanvas {
         }
         this.ctx.clearRect(0,0,this.ctx.canvas.width, this.ctx.canvas.height);
         let entities: EntityStub[] = [];
+        console.log(this.scene.entities);
         for(let [s, a] of Object.entries(this.scene.entities)) {
+            console.log(s);
             entities.push(...this.mergeEntities(s,a));
         }
         entities.forEach((x)=>parents[x.components.identity.id] = x);
@@ -197,7 +199,9 @@ export class MapCanvas {
         parents["__DEFAULT_PARENT__"] = entities["__DEFAULT_PARENT__"]
 
         let index = 0;
+        console.log(stubId);
         return instances.map(i=>{
+            console.log(stubId);
             let lineage = resolveLineage(stubId, entities);
             let identity = i;
             identity.id = identity.id || stubId + index.toString();
@@ -392,8 +396,10 @@ function resolveLineage(stub: string, entities: Record<string,EntityStub>) {
     let order = [stub]
     let obj = entities[stub];
 
+    console.log(order,obj);
+
     for(let inherit of obj.inherits){
-        order.concat(...this.resolveLineage(inherit, entities))
+        order.concat(...resolveLineage(inherit, entities))
     }
 
     return order;
@@ -437,5 +443,6 @@ function addMeta(e: EntityStub, index: number, stub: string) {
     };
     e.components.__transform = transform;
     e.components.__meta = {index,stub}
+    console.log(e);
     return e;
 }
