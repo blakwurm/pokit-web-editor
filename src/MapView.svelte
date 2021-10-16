@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMount } from "svelte";
 import type { MapCanvas } from "./MapCanvas";
-import { appdata, ToolType } from "./stores";
+import { appdata, iterate_enum, ToolType } from "./stores";
 
 
     export let canv: HTMLCanvasElement
@@ -27,11 +27,6 @@ import { appdata, ToolType } from "./stores";
         }
     }
 
-    function iterate_enum(stupidenum: pojo) {
-        let foo = Object.entries(stupidenum).filter(([e])=>isNaN(Number(e)))
-        console.log(foo)
-        return foo
-    }
 
     let grid_x = 32;
     let grid_y = 32;

@@ -4,6 +4,7 @@
   import NumberItem from "./NumberItem.svelte";
   import StringItem from "./StringItem.svelte";
   import type NestedStore from "../NestedStore";
+  import { iterate_enum, ValueType } from "../stores";
   export let store: NestedStore<pojo>
   
   
@@ -19,6 +20,10 @@
       return [k, v, store.drill(k), typeof v]
     })
   }
+  let key: string = "new_member";
+  let type: ValueType = ValueType.STRING;
+
+  let valueMap=["",0,false,[],{}]
 </script>
 
 <!-- <div>{JSON.stringify(store.path)}</div> -->
@@ -32,13 +37,13 @@
     {/if}
   {/each}
   <div class="additioner">
-    <button>Add Item:</button>
-    <select name="opttypes" id="opttypes">
-      {#each Object.keys(map) as thetype}
-        <option value="typetype">{thetype}</option>
+    <button on:click={()=>$store[key]=valueMap[type]}>Add Item:</button>
+    <select name="opttypes" id="opttypes" bind:value={type}>
+      {#each iterate_enum(ValueType) as [k,v]}
+        <option value={v}>{k}</option>
       {/each}
     </select>
-    <input type="text" value="s*** you guys, I'm going home">
+    <input type="text" bind:value={key}>
   </div>
 </div>
 

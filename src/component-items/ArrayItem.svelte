@@ -5,6 +5,7 @@
   import type NestedStore from "../NestedStore";
   import ObjectEditor from "./ObjectEditor.svelte";
   import ColorPicker from './ColorPicker.svelte'
+import { iterate_enum, ValueType } from "../stores";
   export let store: NestedStore<any[]>
 
 
@@ -31,6 +32,14 @@
     store.set(newarray)
   }
 
+  let type: ValueType = ValueType.STRING;
+  let valueMap=["",0,false,[],{}]
+  function updateArr() {
+    store.update(a=>{
+      a.push(valueMap[type]);
+      return a;
+    })
+  }
 </script>
 {#if store.key.toString().toLocaleLowerCase().endsWith('color')}
   <ColorPicker bind:r={$store[0]} bind:g={$store[1]} bind:b={$store[2]} bind:a={$store[3]}></ColorPicker>
@@ -52,10 +61,10 @@
 
   </ol>
   <div class="additioner">
-    <button>Add Item:</button>
-    <select name="opttypes" id="opttypes">
-      {#each ['boolean', 'object', 'number', 'array', 'string'] as thetype}
-        <option value="typetype">{thetype}</option>
+    <button on:click={updateArr}>Add Item:</button>
+    <select name="opttypes" id="opttypes" bind:value={type}>
+      {#each iterate_enum(ValueType) as [k,v]}
+        <option value={v}>{k}</option>
       {/each}
     </select>
   </div>

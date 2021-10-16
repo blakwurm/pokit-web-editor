@@ -28,6 +28,20 @@ export enum ToolType {
     PAN
 }
 
+export enum ValueType {
+    STRING,
+    NUMBER,
+    BOOLEAN,
+    ARRAY,
+    OBJECT
+}
+
+export function iterate_enum(stupidenum: pojo) {
+    let foo = Object.entries(stupidenum).filter(([e])=>isNaN(Number(e)))
+    console.log(foo)
+    return foo
+}
+
 export let appdata = love.undoStore(writable({
     currentScene: 'defaultscene',
     manifest: {
