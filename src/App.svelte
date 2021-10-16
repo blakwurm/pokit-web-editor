@@ -53,6 +53,7 @@ import { MapCanvas } from './MapCanvas';
 		bottom: 50px;
 		left: 0;
 		right: 0;
+		overflow-y: scroll;
 	}
 	footer {
 		position: absolute;

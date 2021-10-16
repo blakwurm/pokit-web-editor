@@ -10,6 +10,10 @@ export default class NestedStore<T> implements UndoRedoStore<T> {
   clear: ()=>void;
   path: Key[];
 
+  get key() {
+    return this.path[this.path.length-1]
+  }
+
   constructor(store: UndoRedoStore<pojo>, ...path: Key[]) {
     this.base = store;
     this.undo = store.undo;

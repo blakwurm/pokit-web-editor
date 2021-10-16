@@ -43,7 +43,10 @@ export let appdata = love.undoStore(writable({
     currentBrush: 'defaultbrush',
     currentTool: ToolType.BRUSH,
     entities: {
-        defaultbrush: {inherits: [''], components: {fak:{blob:false,notblob:['a','b','c']}}} as EntityStub
+        defaultbrush: {inherits: [''], components: {
+            dowap: {color: [255, 255, 234, 200]},
+            fak:{blob:false,notblob:['a','b','c']},
+            compy:{dillweed:{potsmoke:{true:false}}}}} as EntityStub
     },
     inspecting: ['defaultscene', '', 0],
     isDragging: false

@@ -27,3 +27,7 @@ main button {
 input {
 	color: #000;
 }
+
+select {
+	color: black;
+}
