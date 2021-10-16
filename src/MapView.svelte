@@ -32,6 +32,18 @@ import { appdata, ToolType } from "./stores";
         console.log(foo)
         return foo
     }
+
+    let grid_x = 32;
+    let grid_y = 32;
+    let snap_x;
+    let snap_y;
+    $:{
+        mapcanvas.gridX = grid_x;
+        mapcanvas.gridY = grid_y;
+        mapcanvas.snapX = snap_x;
+        mapcanvas.snapY = snap_y;
+        mapcanvas.dirty = true;
+    }
     
 </script>
 
@@ -46,13 +58,37 @@ import { appdata, ToolType } from "./stores";
 </div>
 <div id="canvcontainer" bind:this={canvcontainer}></div>
 
+<div class="grid-settings">
+    <ul>
+        <li>
+            <label for="grid_x">X Snap:</label>
+            <input type="number" id="grid_x" bind:value={grid_x} />
+            <input type="checkbox" id="snap_x" bind:checked={snap_x} />
+        </li>
+        <li>
+            <label for="grid_y">Y Snap:</label>
+            <input type="number" id="grid_y" bind:value={grid_y} />
+            <input type="checkbox" id="snap_y" bind:checked={snap_y} />
+        </li>
+    </ul>
+</div>
+
 <style>
     #canvcontainer {
         background: white;
+        overflow: hidden;
     }
     .tools {
         position: fixed;
         bottom: 71px;
+    }
+    .grid-settings {
+        position: fixed;
+        bottom: 71px;
+        right: 31px;
+    }
+    label {
+        color: black;
     }
     canvas {
         display: block;

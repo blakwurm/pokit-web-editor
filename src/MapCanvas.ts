@@ -25,6 +25,10 @@ export class MapCanvas {
     depth: number;
     last: Vector;
     mDown: boolean;
+    gridX: number;
+    gridY: number;
+    snapX: number;
+    snapY: number;
 
     touchZones: TouchZone[];
 
@@ -58,12 +62,19 @@ export class MapCanvas {
                     }
                     break;
                 case ToolType.BRUSH:
+                    let offset = {
+                        x: this.snapX ? this.gridX : 0,
+                        y: this.snapY ? this.gridY : 0
+                    }
+                    let position = util.vectorAdd(this.scroll, util.screen2pokit(this.ctx.canvas, util.vectorSub(e, {x:20,y:20}), offset))
+                    position.x = this.snapX ? Math.round(position.x / this.gridX) * this.gridX : position.x;
+                    position.y = this.snapY ? Math.round(position.y / this.gridY) * this.gridY : position.y;
                     appdata.update((a)=>{
                         let s = a.scenes[a.currentScene];
                         s.entities[a.currentBrush] = s.entities[a.currentBrush] || [];
                         if(a.entities[a.currentBrush].components.camera?.isMainCamera) s.entities[a.currentBrush] = [];
                         s.entities[a.currentBrush].push({
-                            position: util.vectorAdd(this.scroll, util.screen2pokit(this.ctx.canvas, util.vectorSub(e, {x:20,y:20}))),
+                            position
                         } as Identity);
                         return a;
                     })
@@ -120,6 +131,7 @@ export class MapCanvas {
         entities = entities.filter(e=>e.components.identity.z >= this.depth);
         entities.sort((a,b)=>a.components.identity.position.z-b.components.identity.position.z);
         entities.forEach(this.renderEntity.bind(this));
+        this.renderGrid();
     }
 
     renderdebug() {
@@ -240,6 +252,38 @@ export class MapCanvas {
         this.ctx.fillRect(pos.x, pos.y, metrics.width + 7, 21)
         this.ctx.fillStyle = 'white'
         this.ctx.fillText(txt, pos.x+3, pos.y+15);
+    }
+
+    renderGrid() {
+        let wide = Math.ceil(this.ctx.canvas.width / this.gridX);
+        let high = Math.ceil(this.ctx.canvas.height / this.gridY);
+        let maxX = Math.ceil(wide/2)+1;
+        let maxY = Math.ceil(high/2)+1;
+        let offsetX = this.scroll.x % this.gridX;
+        let offsetY = this.scroll.y % this.gridY;
+        this.ctx.strokeStyle = 'black';
+        this.ctx.lineWidth = 1;
+        if(this.snapX)
+            for(let cx = -maxX+1; cx < maxX; cx++) {
+                let {x} = util.pokit2canvas(this.ctx.canvas, {x:cx * this.gridX, y:0});
+                let y = this.ctx.canvas.height;
+                x-=offsetX;
+                this.renderLine({x,y:0}, {x,y});
+            }
+        if(this.snapY)
+            for(let cy = -maxY+1; cy < maxY; cy++) {
+                let {y} = util.pokit2canvas(this.ctx.canvas, {x:0,y:cy * this.gridY});
+                let x = this.ctx.canvas.width;
+                y-=offsetY;
+                this.renderLine({x:0, y}, {x,y});
+            }
+    }
+
+    renderLine(from: Vector, to: Vector) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(from.x, from.y);
+        this.ctx.lineTo(to.x, to.y);
+        this.ctx.stroke();
     }
 
     makeTouchZone(entity: EntityStub, origin: Vector, bounds: Vector, priority: number) {

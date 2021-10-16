@@ -28,7 +28,7 @@ import { MapCanvas } from './MapCanvas';
 	let innerWidth = window.innerWidth
 	let innerHeight = window.innerHeight
 
-	$: screendims = {width: innerWidth - 40, height: innerHeight - 95}
+	$: screendims = {width: innerWidth - 57, height: innerHeight - 96}
 
 	$: console.log(innerWidth, innerHeight)
 </script>
