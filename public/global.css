@@ -31,3 +31,7 @@ input {
 select {
 	color: black;
 }
+
+canvas {
+	background-color: white;
+}
