@@ -9,19 +9,31 @@ import ArrayItem from "./component-items/ArrayItem.svelte";
 
   let nest_root = new NestedStore(appdata, "entities", $appdata.currentBrush);
   let nest = nest_root.drill("components")
-  let mut = deepClone($appdata.entities);
-  mut["__DEFAULT_PARENT__"] = {
+  $appdata.entities["__DEFAULT_PARENT__"] = {
     inherits: [],
     components: {
       identity: defaultParentNoGlobals
     }
   };
-  $:lin = resolveLineage($appdata.currentBrush, mut);
+  $:lin = resolveLineage($appdata.currentBrush, $appdata.entities);
   $:lin.push("__DEFAULT_PARENT__")
-  $:prototype = applyInheritance(lin, mut) as EntityStub;
+  $:prototype = applyInheritance(lin, $appdata.entities) as EntityStub;
   let key: string = "newcomp"
   let inherits = nest_root.drill("inherits") as NestedStore<string[]>
+
   // $:inspecting = new NestedStore(appdata, 'scenes', $appdata.inspecting[0], 'entities', $appdata.inspecting[1], $appdata.inspecting[2])
+  // function buildMutable(v: any) {
+  //   mut = deepClone($appdata.entities);
+  //   mut["__DEFAULT_PARENT__"] = {
+  //     inherits: [],
+  //     components: {
+  //       identity: defaultParentNoGlobals
+  //     }
+  //   };
+  // }
+  function addComponent() {
+    $nest[key] = {};
+  }
 </script>
 
 <!-- {#if $inspecting} 
@@ -40,7 +52,7 @@ import ArrayItem from "./component-items/ArrayItem.svelte";
     <button on:click={()=>$nest[c]={}}>Override parent:{c}</button>
   {/if}
 {/each}
-<button on:click={()=>$nest[key] = {}}>Add Component:</button>
+<button on:click={()=>addComponent()}>Add Component:</button>
 <input type="text" bind:value={key} />
 <!-- <ul class="componentlist">
   {#each Object.entries($currentBrush.components) as [name,component]}

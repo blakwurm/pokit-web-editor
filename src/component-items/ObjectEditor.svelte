@@ -18,7 +18,7 @@ import { deepClone } from "../utils";
   }
   function enumerate(proto: pojo, obj: pojo, store: NestedStore<pojo>): [string, any, NestedStore<any> | null, string][] {
     return Object.entries(proto).map(([k,v])=>{
-      if(obj[k]) return [k, v, store.drill(k), typeof v]
+      if(obj[k] !== undefined) return [k, v, store.drill(k), typeof v]
       return [k, v, null, typeof v]
     })
   }

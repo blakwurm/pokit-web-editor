@@ -113,6 +113,36 @@ export class MapCanvas {
                         appdata.undo();
                         this.dirty = true;
                     }
+                case "ArrowRight":
+                    if(this.presses.has("Control")) {
+                        console.log("right");
+                        appdata.update((a)=>{
+                            let [scene,stub,index] = a.inspecting;
+                            let sStub = a.scenes[scene] || {entities:{}};
+                            let eStub = sStub[stub] || [];
+                            let selected = eStub[index];
+                            if(!selected) return a;
+                            selected.rotation += 90;
+                            selected.rotation -= selected.rotation > 360 ? 360 : 0;
+                            return a;
+                        })
+                    }
+                    break;
+                case "ArrowLeft":
+                    if(this.presses.has("Control")) {
+                        console.log("left");
+                        appdata.update((a)=>{
+                            let [scene,stub,index] = a.inspecting;
+                            let sStub = a.scenes[scene] || {entities:{}};
+                            let eStub = sStub[stub] || [];
+                            let selected = eStub[index];
+                            if(!selected) return a;
+                            selected.rotation -= 90;
+                            selected.rotation += selected.rotation < 0 ? 360 : 0;
+                            return a;
+                        })
+                    }
+                    break;
             }
         }
 

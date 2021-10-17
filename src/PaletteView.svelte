@@ -26,6 +26,7 @@ import { deepClone } from "./utils";
     }
     function enumerate(obj: pojo) {
         let clone = deepClone(obj);
+        delete clone["__DEFAULT_PARENT__"]
         return Object.keys(clone).map((k)=>{
             let lineage = resolveLineage(k, clone);
             let e = applyInheritance(lineage, clone);
