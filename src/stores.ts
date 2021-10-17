@@ -38,7 +38,6 @@ export enum ValueType {
 
 export function iterate_enum(stupidenum: pojo) {
     let foo = Object.entries(stupidenum).filter(([e])=>isNaN(Number(e)))
-    console.log(foo)
     return foo
 }
 
@@ -54,10 +53,11 @@ export let appdata = love.undoStore(writable({
     spritemap: new Image(),
     scenes: {
         defaultscene: {systems: [], entities:{
-            square:[{}]
+            square:[{id:"main_guy"}],
+            camera:[{parent:"main_guy"}]
         }} as SceneStub
     },
-    currentBrush: 'defaultbrush',
+    currentBrush: 'square',
     currentTool: ToolType.SELECT,
     entities: {
         defaultbrush: {inherits: [], components: {
@@ -72,10 +72,17 @@ export let appdata = love.undoStore(writable({
                         x: 0,
                         y: 0
                     },
-                    rotation: 45
                 },
                 debug:{
                     color:[0,255,0,255]
+                }
+            }
+        },
+        camera: {
+            inherits: [],
+            components: {
+                camera:{
+                    isMainCamera:true
                 }
             }
         }

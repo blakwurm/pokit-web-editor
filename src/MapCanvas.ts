@@ -59,9 +59,13 @@ export class MapCanvas {
                         let poly=box2poly(zone.origin, zone.bounds, zone.rotation);
                         if(pointInPoly(p, poly)){
                             zone.callback();
-                            break;
+                            return;
                         }
                     }
+                    appdata.update(a=>{
+                        a.inspecting[2]=-1;
+                        return a;
+                    });
                     break;
                 case ToolType.BRUSH:
                     let offset = {
@@ -69,8 +73,7 @@ export class MapCanvas {
                         y: this.snapY ? this.gridY : 0
                     }
                     let position = util.vectorAdd(this.scroll, util.screen2pokit(this.ctx.canvas, util.vectorSub(e, {x:20,y:20}), offset))
-                    position.x = this.snapX ? Math.round(position.x / this.gridX) * this.gridX : position.x;
-                    position.y = this.snapY ? Math.round(position.y / this.gridY) * this.gridY : position.y;
+                    position = this.snap(position);
                     appdata.update((a)=>{
                         let s = a.scenes[a.currentScene];
                         s.entities[a.currentBrush] = s.entities[a.currentBrush] || [];
@@ -90,11 +93,9 @@ export class MapCanvas {
             this.scroll = util.vectorAdd(this.scroll, delta);
             this.last = scaled;
             this.dirty = true;
-            console.log(this.scroll, this.mDown, this.state.currentTool);
         })
 
         window.onkeydown = (e)=>{
-            console.log(e.key);
             if(!this.presses.has(e.key))this.presses.add(e.key);
             else return;
             switch(e.key) {
@@ -104,12 +105,10 @@ export class MapCanvas {
                         let scene = a.scenes[sceneKey];
                         let stub = scene.entities[stubKey];
                         stub.splice(index,1);
-                        console.log(stub);
                         return a;
                     })
                 case "z":
                     if(this.presses.has("Control")) {
-                        console.log(this.canUndo);
                         appdata.undo();
                         this.dirty = true;
                     }
@@ -194,9 +193,7 @@ export class MapCanvas {
         parents["__DEFAULT_PARENT__"] = entities["__DEFAULT_PARENT__"]
 
         let index = 0;
-        console.log(stubId);
         return instances.map(i=>{
-            console.log(stubId);
             let lineage = resolveLineage(stubId, entities);
             let identity = i;
             identity.id = identity.id || stubId + index.toString();
@@ -340,7 +337,6 @@ export class MapCanvas {
         let [scene,stub,index]=this.state.inspecting;
         let entityStub = instances[stub] || [];
         let selected = entityStub[index];
-        console.log(selected);
         if(scene === this.state.currentScene && selected) {
             let center = selected.components.__transform.globalPosition;
             center = util.pokit2canvas(this.ctx.canvas, center);
@@ -352,69 +348,9 @@ export class MapCanvas {
             this.makeRotateHandle(instances);
             this.makeMoveHandle(instances);
             this.restore();
-            return;
-            let ident = selected.components.identity as Identity;
-            let origin = util.pokit2canvas(this.ctx.canvas, ident.position, ident.bounds);
-            origin.x += ident.bounds.x/2;
-            this.renderLine(origin, {x:origin.x,y:origin.y-20});
-            let rho=util.vectorSub(origin,{x:5,y:25})
-            this.ctx.fillRect(rho.x,rho.y,10,10)
-            let mho=util.vectorAdd(origin,{x:0,y:ident.bounds.y/2})
-            let halfPlusLen=5;
-            let mhoVert = util.vectorSub(mho,{x:0,y:halfPlusLen});
-            let mhoHorz = util.vectorSub(mho,{x:halfPlusLen,y:0});
-            this.renderLine(mhoHorz, {x:mhoHorz.x+(2*halfPlusLen),y:mhoHorz.y});
-            this.renderLine(mhoVert, {x:mhoVert.x, y:mhoVert.y+(2*halfPlusLen)});
-            mho = util.vectorSub(mho,{x:halfPlusLen,y:halfPlusLen});
-            this.touchZones.push({
-                priority: Infinity,
-                origin: mho,
-                bounds: {x:halfPlusLen*2,y:halfPlusLen*2},
-                rotation: 0,
-                callback: ()=>{
-                    let cb=(e: MouseEvent)=>{
-                        if(!this.mDown){
-                            this.ctx.canvas.removeEventListener("mousemove", cb);
-                            return;
-                        }
-                        let pos = util.screen2pokit(this.ctx.canvas, e);
-                        pos = util.vectorAdd(pos, this.scroll);
-                        let [scene,stub,index] = this.state.inspecting;
-                        this.state.scenes[scene].entities[stub][index].position = pos;
-                        this.dirty = true;
-                    }
-                    this.ctx.canvas.addEventListener("mousemove", cb)
-                }
-            },
-            {
-                priority: Infinity,
-                origin: rho,
-                bounds: {x:10,y:10},
-                rotation: 0,
-                callback: ()=>{
-                    let cb=(e: MouseEvent)=>{
-                        if(!this.mDown){
-                            this.ctx.canvas.removeEventListener("mousemove", cb);
-                            return;
-                        }
-                        let [scene,stub,index] = this.state.inspecting;
-                        let selected = instances[stub][index];
-                        let ident = selected.components.identity as Identity;
-                        let transform = selected.components.__transform as Transform;
-                        let pos = ident.position;
-                        let pos2 = util.screen2pokit(this.ctx.canvas, e);
-                        let rad =Math.atan2(pos2.y-pos.y,pos2.x-pos.x)
-                        rad += Math.PI/2;
-                        rad = rad < 0 ? rad+(Math.PI*2) : rad;
-                        let deg = util.rad2deg(rad);
-                        let parent = transform.globalRotation - ident.rotation;
-                        this.state.scenes[scene].entities[stub][index].rotation = deg - parent;
-                    }
-                    this.ctx.canvas.addEventListener("mousemove", cb)
-                }
-            })
         }
     }
+
     makeMoveHandle(instances: Record<string, EntityStub[]>) {
         let [,stub,index] = this.state.inspecting;
         let resolved = instances[stub][index];
@@ -442,6 +378,7 @@ export class MapCanvas {
                     }
                     let pos = util.screen2pokit(this.ctx.canvas, e);
                     pos = util.vectorAdd(pos, this.scroll);
+                    pos = this.snap(pos);
                     let [scene,stub,index] = this.state.inspecting;
                     this.state;
                     appdata.update(a=>{
@@ -503,6 +440,13 @@ export class MapCanvas {
                 }
             }
         )
+    }
+
+    snap(vec:Vector) {
+        return {
+            x:this.snapX ? Math.round(vec.x / this.gridX) * this.gridX : vec.x,
+            y:this.snapY ? Math.round(vec.y / this.gridY) * this.gridY : vec.y
+        }
     }
 
     rotate(theta: number, origin: Vector) {
@@ -585,7 +529,6 @@ export function resolveLineage(stub: string, entities: Record<string,EntityStub>
     let order = [stub]
     let obj = entities[stub];
 
-    console.log(order,obj);
 
     for(let inherit of obj.inherits){
         order.push(...resolveLineage(inherit, entities))
@@ -596,7 +539,6 @@ export function resolveLineage(stub: string, entities: Record<string,EntityStub>
 
 export function applyInheritance(lineage: string[], entities: Record<string,EntityStub>) {
     let base = {};
-    console.log(lineage);
     while(lineage.length) {
         let stub = entities[lineage.pop()!];
         base = deepMergeNoConcat(base, stub)
@@ -645,7 +587,6 @@ function addMeta(e: EntityStub, index: number, stub: string) {
     };
     e.components.__transform = transform;
     e.components.__meta = {index,stub}
-    console.log(e);
     return e;
 }
 
