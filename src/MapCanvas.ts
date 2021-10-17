@@ -290,7 +290,7 @@ export class MapCanvas {
         let maxY = Math.ceil(high/2)+1;
         let offsetX = this.scroll.x % this.gridX;
         let offsetY = this.scroll.y % this.gridY;
-        this.ctx.strokeStyle = 'black';
+        this.ctx.strokeStyle = 'rgba(0,0,0,0.25)';
         this.ctx.lineWidth = 1;
         if(this.snapX)
             for(let cx = -maxX+1; cx < maxX; cx++) {
@@ -357,6 +357,7 @@ export class MapCanvas {
         let resolved = instances[stub][index];
         let center = resolved.components.__transform.globalPosition;
         let bounds = resolved.components.__transform.globalBounds;
+        center = util.vectorSub(center, this.scroll);
         let org = util.pokit2canvas(this.ctx.canvas, center, bounds);
         center = util.pokit2canvas(this.ctx.canvas, center);
         let rot = resolved.components.__transform.globalRotation;
@@ -396,6 +397,7 @@ export class MapCanvas {
         let [,stub,index] = this.state.inspecting;
         let resolved = instances[stub][index];
         let center = resolved.components.__transform.globalPosition;
+        center = util.vectorSub(center, this.scroll);
         let bounds = resolved.components.__transform.globalBounds;
         let rot = resolved.components.__transform.globalRotation;
         center = util.pokit2canvas(this.ctx.canvas, center);
@@ -428,6 +430,7 @@ export class MapCanvas {
                         let transform = selected.components.__transform as Transform;
                         let pos = transform.globalPosition;
                         let pos2 = util.screen2pokit(this.ctx.canvas, e);
+                        pos2 = util.vectorAdd(pos2, this.scroll);
                         let rad =Math.atan2(pos2.y-pos.y,pos2.x-pos.x)
                         rad += Math.PI/2;
                         rad = rad < 0 ? rad+(Math.PI*2) : rad;
@@ -453,10 +456,11 @@ export class MapCanvas {
     }
 
     rotate(theta: number, origin: Vector) {
+        let org = util.vectorSub(origin, this.scroll);
         this.ctx.save();
-        this.ctx.translate(origin.x,origin.y);
+        this.ctx.translate(org.x,org.y);
         this.ctx.rotate(util.deg2rad(theta));
-        this.ctx.translate(-origin.x,-origin.y);
+        this.ctx.translate(-org.x,-org.y);
     }
     restore() {
         this.ctx.restore();

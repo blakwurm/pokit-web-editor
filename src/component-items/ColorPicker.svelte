@@ -4,7 +4,6 @@
     export let g: number
     export let b: number
     export let a: number
-    $:console.log(r,g,b,a)
 
     function int_to_hex(twofiftyfivemax: number) {
         let thingy = twofiftyfivemax.toString(16)
@@ -24,7 +23,6 @@
         let rt = parseInt(hex.substr(1,2), 16)
         let gt = parseInt(hex.substr(3,2), 16)
         let bt = parseInt(hex.substr(5,2), 16)
-        console.log('bario', hex, rt, gt, bt)
         return [rt, gt, bt]
     }
     $:deconstructed = color_array_to_hex([r,g,b])

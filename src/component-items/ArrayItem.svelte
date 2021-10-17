@@ -17,12 +17,10 @@ import { iterate_enum, ValueType } from "../stores";
   }
 
   function enumerate(arr: any[], store: NestedStore<any[]>) {
-    console.log(arr, arr.map);
     return arr.map((v, i)=>{
       return {k:i,v,s:store.drill(i++), t:typeof v}
     })
   }
-  let currentarray = $store
   
   function movedown(i: number) {
     let value = $store[i]
