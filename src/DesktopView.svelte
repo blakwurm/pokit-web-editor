@@ -29,7 +29,7 @@
         <InspectorView></InspectorView>
     </aside>
     <footer>
-        <PaletteView></PaletteView>
+        <PaletteView desktop></PaletteView>
     </footer>
 </div>
     <!-- <Split initialPrimarySize='70%'>

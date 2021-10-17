@@ -2,6 +2,7 @@
 import { onMount } from "svelte";
 import type { MapCanvas } from "./MapCanvas";
 import { appdata, iterate_enum, ToolType } from "./stores";
+import { screenOffset } from "./utils";
 
 
     export let desktop: boolean = false
@@ -9,6 +10,8 @@ import { appdata, iterate_enum, ToolType } from "./stores";
     let canvcontainer: HTMLDivElement
     export let screendims: {width:number, height:number}
     export let mapcanvas: MapCanvas
+    $:screenOffset.x = desktop ? 40 : 20;
+    $:screenOffset.y = desktop ? 40 : 20;
     $:{
         canv.width = screendims.width;
         canv.height = screendims.height;
@@ -94,5 +97,8 @@ import { appdata, iterate_enum, ToolType } from "./stores";
     }
     label {
         color: black;
+    }
+    button {
+        color: white;
     }
 </style>

@@ -419,6 +419,8 @@ export function canvas2pokit(c: HTMLCanvasElement, n: Vector, b: Vector = {x:0,y
     }
 }
 
+export let screenOffset = {x:20,y:20};
+
 /**
  * 
  * @param c the canvas
@@ -426,8 +428,8 @@ export function canvas2pokit(c: HTMLCanvasElement, n: Vector, b: Vector = {x:0,y
  * @returns point transformed to canvas-space
  */
 export function screen2canvas(c: HTMLCanvasElement, p: Vector) {
-  // let translated = vectorSub(p, {x:c.clientLeft+20,y:c.clientTop+20});
-  let translated = p
+  let translated = vectorSub(p, {x:c.clientLeft,y:c.clientTop});
+  translated = vectorSub(translated, screenOffset);
   let scaled = vectorDivide(translated, {x:c.clientWidth, y:c.clientHeight});
   return vectorMultiply(scaled, {x:c.width, y:c.height});
 }
@@ -440,7 +442,8 @@ export function screen2canvas(c: HTMLCanvasElement, p: Vector) {
  */
 export function canvas2screen(c: HTMLCanvasElement, p: Vector) {
   let scaled = vectorDivide(p, {x:c.width, y:c.height});
-  let translated = vectorAdd(scaled, {x:c.clientLeft+20, y:c.clientTop+20})
+  let translated = vectorAdd(scaled, {x:c.clientLeft, y:c.clientTop})
+  translated = vectorAdd(translated, screenOffset);
   return vectorMultiply(translated, {x:c.clientWidth, y:c.clientHeight});
 }
 

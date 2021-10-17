@@ -3,9 +3,11 @@ import app from "./main";
 import { applyInheritance, resolveLineage } from "./MapCanvas";
 
     import { appdata } from "./stores";
-import { deepClone } from "./utils";
+    import { deepClone } from "./utils";
 
     let key: string = "newstub";
+
+    export let desktop: boolean = false;
 
     function cloneStub(name:string) {
         let newStub = deepClone($appdata.entities[name]);
@@ -42,7 +44,13 @@ import { deepClone } from "./utils";
         });
     }
 </script>
-
+{#if desktop}
+<style>
+    button {
+        color: black;
+    }
+</style>
+{/if}
 <ul class="palettelist">
     {#each enumerate($appdata.entities) as [k,s]}
         <li class="paletteoption">
