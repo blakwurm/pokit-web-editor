@@ -1,5 +1,6 @@
 <script lang="ts">
 import app from "./main";
+import { applyInheritance, resolveLineage } from "./MapCanvas";
 
     import { appdata } from "./stores";
 import { deepClone } from "./utils";
@@ -23,13 +24,29 @@ import { deepClone } from "./utils";
         }
         console.log($appdata);
     }
+    function enumerate(obj: pojo) {
+        let clone = deepClone(obj);
+        return Object.keys(clone).map((k)=>{
+            let lineage = resolveLineage(k, clone);
+            let e = applyInheritance(lineage, clone);
+            let color = e.components.debug?.color || [0,0,255,255];
+            let style = `--debug-color:rgba(
+                ${color[0]},
+                ${color[1]},
+                ${color[2]},
+                ${color[3]/255},
+            );`
+            console.log(style);
+            return [k,style]
+        });
+    }
 </script>
 
 <ul class="palettelist">
-    {#each Object.entries($appdata.entities) as [k,v]}
+    {#each enumerate($appdata.entities) as [k,s]}
         <li class="paletteoption">
             <div class="thingname">{k}</div>
-            <div class="fauximage"></div>
+            <div class="fauximage" style={s}></div>
             <ul>
                 <button on:click={()=>$appdata.currentBrush=k}>Make Active Brush</button>
                 <button on:click={()=>cloneStub(k)}>Clone</button>
@@ -63,8 +80,9 @@ import { deepClone } from "./utils";
         border: solid 3px grey;
     }
     .paletteoption .fauximage {
+        --debug-color: rgba(0,0,255,1);
         display: solid;
-        background-color: blue;
+        background-color: var(--debug-color);
         width: 40px;
         height: 40px;
         float: right;

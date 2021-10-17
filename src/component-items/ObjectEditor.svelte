@@ -5,6 +5,7 @@
   import StringItem from "./StringItem.svelte";
   import type NestedStore from "../NestedStore";
   import { iterate_enum, ValueType } from "../stores";
+import { deepClone } from "../utils";
   export let store: NestedStore<pojo>
   export let proto: pojo
   
@@ -16,7 +17,6 @@
     boolean: BooleanItem
   }
   function enumerate(proto: pojo, obj: pojo, store: NestedStore<pojo>): [string, any, NestedStore<any> | null, string][] {
-    console.log(store, proto);
     return Object.entries(proto).map(([k,v])=>{
       if(obj[k]) return [k, v, store.drill(k), typeof v]
       return [k, v, null, typeof v]
@@ -40,7 +40,8 @@
     $store[key]=valueMap[type];
   }
   function addParentOverride(key,value) {
-    return ()=>$store[key] = value;
+    let v = typeof value==="object" ? deepClone(value) : value;
+    return ()=>$store[key] = v;
   }
   function getParentOverrideString(key,value?) {
     let suffix = value !== undefined ? `(${value})` : "";
@@ -52,7 +53,7 @@
 <div class="obmodule">
   <div class="nameo">{store.key}</div>
   {#each enumerate(proto, $store, store) as [k, v, s, t]}
-    {#if $store[k] !== undefined}
+    {#if s}
       {#if t==='object' && !Array.isArray(v)}
         <svelte:self store={s} proto={proto[k]}/>
       {:else}

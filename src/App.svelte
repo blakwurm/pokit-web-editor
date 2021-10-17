@@ -10,6 +10,7 @@ import { MapCanvas } from './MapCanvas';
 	let canv = document.createElement('canvas')
 	canv.height = 300
 	canv.width = 300
+	canv.id = "editor"
 
 	let mapcanvas = new MapCanvas(canv)
 	//@ts-ignore

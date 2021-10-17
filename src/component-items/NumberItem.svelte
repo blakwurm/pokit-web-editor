@@ -6,7 +6,6 @@
   let psudovalue = $store
   $: $store = psudovalue || 0
 
-
   let id = uuid();
 </script>
 <label for={id}>{label}</label>

@@ -41,6 +41,7 @@ export class MapCanvas {
         this.ctx = c.getContext('2d', {
             antialias: false
         }) as CanvasRenderingContext2D;
+        this.ctx.imageSmoothingEnabled = false;
         this.scroll = {x:0,y:0};
         this.depth = 0;
         appdata.subscribe(this.updateState.bind(this));
@@ -431,6 +432,8 @@ export class MapCanvas {
                         rad += Math.PI/2;
                         rad = rad < 0 ? rad+(Math.PI*2) : rad;
                         let deg = util.rad2deg(rad);
+                        let snap = this.presses.has("Shift") ? 45 : 22.5;
+                        deg = this.presses.has("Control") ? Math.round(deg/snap) * snap : deg;
                         appdata.update(a=>{
                             a.scenes[scene].entities[stub][index].rotation = resolved.components.__transform.revRotation(deg);
                             return a;
