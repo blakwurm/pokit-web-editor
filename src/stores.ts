@@ -3,7 +3,7 @@ import * as love from 'immer-loves-svelte'
 import { writable } from 'svelte/store'
 import type {Writable} from 'svelte/store'
 
-import type { CartManifest, EntityStub, SceneStub } from './pokit.types'
+import type { CartManifest, EntityStub, Identity, SceneStub } from './pokit.types'
 import NestedStore from './NestedStore'
 
 export interface AppData {
@@ -53,7 +53,9 @@ export let appdata = love.undoStore(writable({
     } as CartManifest,
     spritemap: new Image(),
     scenes: {
-        defaultscene: {systems: {}, entities:{}} as SceneStub
+        defaultscene: {systems: [], entities:{
+            square:[{}]
+        }} as SceneStub
     },
     currentBrush: 'defaultbrush',
     currentTool: ToolType.SELECT,
@@ -61,9 +63,24 @@ export let appdata = love.undoStore(writable({
         defaultbrush: {inherits: [], components: {
             dowap: {color: [255, 255, 234, 200]},
             fak:{blob:false,notblob:['a','b','c']},
-            compy:{dillweed:{potsmoke:{true:false}}}}} as EntityStub
+            compy:{dillweed:{potsmoke:{true:false}}}}} as EntityStub,
+        square: {
+            inherits: [],
+            components: {
+                identity: {
+                    position:{
+                        x: 0,
+                        y: 0
+                    },
+                    rotation: 45
+                },
+                debug:{
+                    color:[0,255,0,255]
+                }
+            }
+        }
     },
-    inspecting: ['defaultscene', '', 0],
+    inspecting: ['defaultscene', 'square', 0],
     isDragging: false
 } as AppData))
 

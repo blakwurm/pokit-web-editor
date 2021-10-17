@@ -26,12 +26,12 @@ export interface CartManifest {
     id?: string;
     parent?: string;
     persistent?: boolean;
-    bounds: Vector;
-    position: Vector;
-    z: number;
-    depth: number;
-    scale: Vector;
-    rotation: number;
+    bounds?: Vector;
+    position?: Vector;
+    z?: number;
+    depth?: number;
+    scale?: Vector;
+    rotation?: number;
   }
 
   export interface Vector {

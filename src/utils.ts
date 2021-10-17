@@ -89,14 +89,12 @@ export function uuid() {
   return uuid;
 }
 
-export function rotateVector(vec: Vector, theta: number): Vector {
+export function rotateVector(vec: Vector, theta: number, org:Vector={x:0,y:0}): Vector {
   let t = deg2rad(theta);
-  let x = Math.cos(t) * vec.x - Math.sin(t) * vec.y;
-  let y = Math.sin(t) * vec.x + Math.cos(t) * vec.y;
-  return {
-    x: x,
-    y: y
-  }
+  let p = vectorSub(vec,org)
+  let x = Math.cos(t) * p.x - Math.sin(t) * p.y;
+  let y = Math.sin(t) * p.x + Math.cos(t) * p.y;
+  return vectorAdd({x,y}, org)
 }
 
 export function vectorEqual(vec1: Vector, vec2: Vector) {
@@ -428,7 +426,7 @@ export function canvas2pokit(c: HTMLCanvasElement, n: Vector, b: Vector = {x:0,y
  * @returns point transformed to canvas-space
  */
 export function screen2canvas(c: HTMLCanvasElement, p: Vector) {
-  let translated = vectorSub(p, {x:c.clientLeft,y:c.clientTop});
+  let translated = vectorSub(p, {x:c.clientLeft+20,y:c.clientTop+20});
   let scaled = vectorDivide(translated, {x:c.clientWidth, y:c.clientHeight});
   return vectorMultiply(scaled, {x:c.width, y:c.height});
 }
@@ -441,7 +439,7 @@ export function screen2canvas(c: HTMLCanvasElement, p: Vector) {
  */
 export function canvas2screen(c: HTMLCanvasElement, p: Vector) {
   let scaled = vectorDivide(p, {x:c.width, y:c.height});
-  let translated = vectorAdd(scaled, {x:c.clientLeft, y:c.clientTop})
+  let translated = vectorAdd(scaled, {x:c.clientLeft+20, y:c.clientTop+20})
   return vectorMultiply(translated, {x:c.clientWidth, y:c.clientHeight});
 }
 

@@ -13,6 +13,7 @@ interface TouchZone {
     priority: number;
     origin: Vector;
     bounds: Vector;
+    rotation: number;
     callback: Function;
 }
 
@@ -47,20 +48,18 @@ export class MapCanvas {
         appdata.canUndo.subscribe((v)=>this.canUndo=v)
         this.touchZones = [];
 
-        c.addEventListener('click',(e)=>{
+        c.addEventListener('mousedown',(e)=>{
+            e.preventDefault();
+            this.last = util.screen2canvas(c, e);
+            this.mDown = true;
             switch(this.state.currentTool) {
                 case ToolType.SELECT: 
-                    let p = util.screen2canvas(c, util.vectorSub(e, {x:20,y:20}));
+                    let p = util.screen2canvas(c, e);
                     for(let zone of this.touchZones.sort((a,b)=>b.priority-a.priority)) {
-                        let end = util.vectorAdd(zone.origin, zone.bounds);
-                        console.log(zone.origin,end, zone.entity?.components.identity.id);
-                        if( p.x >= zone.origin.x &&
-                            p.y >= zone.origin.y &&
-                            p.x <= end.x &&
-                            p.y <= end.y) {
-                            
-                                zone.callback();
-                                return;
+                        let poly=box2poly(zone.origin, zone.bounds, zone.rotation);
+                        if(pointInPoly(p, poly)){
+                            zone.callback();
+                            break;
                         }
                     }
                     break;
@@ -83,11 +82,6 @@ export class MapCanvas {
                     })
             }
         });
-        c.addEventListener('mousedown', (e)=>{
-            e.preventDefault();
-            this.last = util.screen2canvas(c, e);
-            this.mDown = true;
-        })
         c.addEventListener('mouseup', ()=>this.mDown=false);
         c.addEventListener('mousemove', (e)=>{
             if(this.state.currentTool !== ToolType.PAN || !this.mDown) return;
@@ -152,15 +146,16 @@ export class MapCanvas {
         }
         this.ctx.clearRect(0,0,this.ctx.canvas.width, this.ctx.canvas.height);
         let entities: EntityStub[] = [];
-        console.log(this.scene.entities);
+        let instances: Record<string,EntityStub[]> = {};
         for(let [s, a] of Object.entries(this.scene.entities)) {
-            console.log(s);
-            entities.push(...this.mergeEntities(s,a));
+            instances[s] = this.mergeEntities(s,a);
+            entities.push(...instances[s])
         }
         entities.forEach((x)=>parents[x.components.identity.id] = x);
         entities = entities.filter(e=>e.components.identity.z >= this.depth);
         entities.sort((a,b)=>a.components.identity.position.z-b.components.identity.position.z);
         entities.forEach(this.renderEntity.bind(this));
+        this.makeHandles(instances);
         this.renderGrid();
     }
 
@@ -220,6 +215,10 @@ export class MapCanvas {
     renderEntity(entity:EntityStub) {
         let pos: Vector, bounds: Vector;
         let identity = entity.components.identity as Identity;
+        let center = entity.components.__transform.globalPosition;
+        center = util.pokit2canvas(this.ctx.canvas, center);
+        let rot = entity.components.__transform.globalRotation;
+        this.rotate(rot, center);
         let prio = 0;
         if(entity.components.camera) {
             [pos, bounds] = this.renderCameraEntity(entity);
@@ -235,8 +234,9 @@ export class MapCanvas {
              instance === entity.components.__meta.index) {
                 this.renderBorder(pos, bounds);
              }
-        this.makeTouchZone(entity, Object.assign({},pos), bounds, prio)
-        pos.y -= 30;
+        this.makeTouchZone(entity, Object.assign({},pos), bounds, entity.components.__transform.globalRotation, prio)
+        this.restore();
+        pos.y -= 61;
         this.renderLabel(pos, identity.id!);
     }
 
@@ -317,12 +317,13 @@ export class MapCanvas {
         this.ctx.stroke();
     }
 
-    makeTouchZone(entity: EntityStub, origin: Vector, bounds: Vector, priority: number) {
+    makeTouchZone(entity: EntityStub, origin: Vector, bounds: Vector, rotation: number, priority: number) {
         let tz = {
             entity,
             priority,
             origin,
             bounds,
+            rotation,
             callback: ()=>{
                 let meta = entity.components.__meta;
                 appdata.update((a)=>{
@@ -335,6 +336,185 @@ export class MapCanvas {
         this.touchZones.push(tz);
     }
 
+    makeHandles(instances: Record<string,EntityStub[]>) {
+        let [scene,stub,index]=this.state.inspecting;
+        let entityStub = instances[stub] || [];
+        let selected = entityStub[index];
+        console.log(selected);
+        if(scene === this.state.currentScene && selected) {
+            let center = selected.components.__transform.globalPosition;
+            center = util.pokit2canvas(this.ctx.canvas, center);
+            let rot = selected.components.__transform.globalRotation;
+            this.ctx.strokeStyle='purple';
+            this.ctx.fillStyle='purple';
+            this.ctx.lineWidth = 3;
+            this.rotate(rot, center);
+            this.makeRotateHandle(instances);
+            this.makeMoveHandle(instances);
+            this.restore();
+            return;
+            let ident = selected.components.identity as Identity;
+            let origin = util.pokit2canvas(this.ctx.canvas, ident.position, ident.bounds);
+            origin.x += ident.bounds.x/2;
+            this.renderLine(origin, {x:origin.x,y:origin.y-20});
+            let rho=util.vectorSub(origin,{x:5,y:25})
+            this.ctx.fillRect(rho.x,rho.y,10,10)
+            let mho=util.vectorAdd(origin,{x:0,y:ident.bounds.y/2})
+            let halfPlusLen=5;
+            let mhoVert = util.vectorSub(mho,{x:0,y:halfPlusLen});
+            let mhoHorz = util.vectorSub(mho,{x:halfPlusLen,y:0});
+            this.renderLine(mhoHorz, {x:mhoHorz.x+(2*halfPlusLen),y:mhoHorz.y});
+            this.renderLine(mhoVert, {x:mhoVert.x, y:mhoVert.y+(2*halfPlusLen)});
+            mho = util.vectorSub(mho,{x:halfPlusLen,y:halfPlusLen});
+            this.touchZones.push({
+                priority: Infinity,
+                origin: mho,
+                bounds: {x:halfPlusLen*2,y:halfPlusLen*2},
+                rotation: 0,
+                callback: ()=>{
+                    let cb=(e: MouseEvent)=>{
+                        if(!this.mDown){
+                            this.ctx.canvas.removeEventListener("mousemove", cb);
+                            return;
+                        }
+                        let pos = util.screen2pokit(this.ctx.canvas, e);
+                        pos = util.vectorAdd(pos, this.scroll);
+                        let [scene,stub,index] = this.state.inspecting;
+                        this.state.scenes[scene].entities[stub][index].position = pos;
+                        this.dirty = true;
+                    }
+                    this.ctx.canvas.addEventListener("mousemove", cb)
+                }
+            },
+            {
+                priority: Infinity,
+                origin: rho,
+                bounds: {x:10,y:10},
+                rotation: 0,
+                callback: ()=>{
+                    let cb=(e: MouseEvent)=>{
+                        if(!this.mDown){
+                            this.ctx.canvas.removeEventListener("mousemove", cb);
+                            return;
+                        }
+                        let [scene,stub,index] = this.state.inspecting;
+                        let selected = instances[stub][index];
+                        let ident = selected.components.identity as Identity;
+                        let transform = selected.components.__transform as Transform;
+                        let pos = ident.position;
+                        let pos2 = util.screen2pokit(this.ctx.canvas, e);
+                        let rad =Math.atan2(pos2.y-pos.y,pos2.x-pos.x)
+                        rad += Math.PI/2;
+                        rad = rad < 0 ? rad+(Math.PI*2) : rad;
+                        let deg = util.rad2deg(rad);
+                        let parent = transform.globalRotation - ident.rotation;
+                        this.state.scenes[scene].entities[stub][index].rotation = deg - parent;
+                    }
+                    this.ctx.canvas.addEventListener("mousemove", cb)
+                }
+            })
+        }
+    }
+    makeMoveHandle(instances: Record<string, EntityStub[]>) {
+        let [,stub,index] = this.state.inspecting;
+        let resolved = instances[stub][index];
+        let center = resolved.components.__transform.globalPosition;
+        let bounds = resolved.components.__transform.globalBounds;
+        let org = util.pokit2canvas(this.ctx.canvas, center, bounds);
+        center = util.pokit2canvas(this.ctx.canvas, center);
+        let rot = resolved.components.__transform.globalRotation;
+        let hls = util.vectorSub(center, {x:5,y:0});
+        let hle = util.vectorAdd(center, {x:5,y:0});
+        let vls = util.vectorSub(center, {x:0,y:5});
+        let vle = util.vectorAdd(center, {x:0,y:5});
+        this.renderLine(hls,hle);
+        this.renderLine(vls,vle);
+        this.touchZones.push({
+            priority: Infinity,
+            origin: org,
+            bounds,
+            rotation: rot,
+            callback: ()=>{
+                let cb=(e: MouseEvent)=>{
+                    if(!this.mDown){
+                        this.ctx.canvas.removeEventListener("mousemove", cb);
+                        return;
+                    }
+                    let pos = util.screen2pokit(this.ctx.canvas, e);
+                    pos = util.vectorAdd(pos, this.scroll);
+                    let [scene,stub,index] = this.state.inspecting;
+                    this.state;
+                    appdata.update(a=>{
+                        a.scenes[scene].entities[stub][index].position = resolved.components.__transform.revPosition(pos);
+                        return a;
+                    });
+                }
+                this.ctx.canvas.addEventListener("mousemove", cb)
+            }
+        });
+    }
+
+    makeRotateHandle(instances: Record<string,EntityStub[]>) {
+        let [,stub,index] = this.state.inspecting;
+        let resolved = instances[stub][index];
+        let center = resolved.components.__transform.globalPosition;
+        let bounds = resolved.components.__transform.globalBounds;
+        let rot = resolved.components.__transform.globalRotation;
+        center = util.pokit2canvas(this.ctx.canvas, center);
+        let lineStart = util.vectorSub(center, {x:0,y:bounds.y/2});
+        let lineEnd = util.vectorSub(lineStart, {x:0,y:20});
+        let handleCenter= util.vectorSub(lineEnd, {x:0,y:5});
+
+        this.ctx.fillStyle = 'purple';
+        this.ctx.strokeStyle = 'purple';
+        this.ctx.lineWidth = 3;
+        this.renderLine(lineStart,lineEnd);
+        this.ctx.fillRect(handleCenter.x-5,handleCenter.y-5,10,10);
+
+        handleCenter = util.rotateVector(handleCenter, rot, center);
+
+        this.touchZones.push(
+            {
+                priority: Infinity,
+                origin: util.vectorSub(handleCenter,{x:5,y:5}),
+                bounds: {x:10,y:10},
+                rotation: rot,
+                callback: ()=>{
+                    let cb=(e: MouseEvent)=>{
+                        if(!this.mDown){
+                            this.ctx.canvas.removeEventListener("mousemove", cb);
+                            return;
+                        }
+                        let [scene,stub,index] = this.state.inspecting;
+                        let selected = instances[stub][index];
+                        let transform = selected.components.__transform as Transform;
+                        let pos = transform.globalPosition;
+                        let pos2 = util.screen2pokit(this.ctx.canvas, e);
+                        let rad =Math.atan2(pos2.y-pos.y,pos2.x-pos.x)
+                        rad += Math.PI/2;
+                        rad = rad < 0 ? rad+(Math.PI*2) : rad;
+                        let deg = util.rad2deg(rad);
+                        appdata.update(a=>{
+                            a.scenes[scene].entities[stub][index].rotation = resolved.components.__transform.revRotation(deg);
+                            return a;
+                        })
+                    }
+                    this.ctx.canvas.addEventListener("mousemove", cb)
+                }
+            }
+        )
+    }
+
+    rotate(theta: number, origin: Vector) {
+        this.ctx.save();
+        this.ctx.translate(origin.x,origin.y);
+        this.ctx.rotate(util.deg2rad(theta));
+        this.ctx.translate(-origin.x,-origin.y);
+    }
+    restore() {
+        this.ctx.restore();
+    }
+
     translate(x: number, y: number, z?: number) {
         this.scroll.x += x || 0
         this.scroll.y += y || 0
@@ -344,6 +524,15 @@ export class MapCanvas {
 
     transvec(v: Vector) {
       this.translate(v.x, v.y, 0)
+    }
+
+    drawPoly(poly:Vector[]) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(poly[0].x,poly[0].y);
+        for(let i=1; i < poly.length;i++) {
+            this.ctx.lineTo(poly[i].x,poly[i].y);
+        }
+        this.ctx.closePath();
     }
 }
 
@@ -439,11 +628,46 @@ function addMeta(e: EntityStub, index: number, stub: string) {
             return util.vectorMultiply(i.scale, parent.globalScale);
         },
         get globalBounds() {
+            if(e.components.camera?.isMainCamera) return POKIT_DIMS;
             return util.vectorMultiply(i.bounds, transform.globalScale);
+        },
+        revPosition: (pos: Vector) => {
+            let parent = parents[e.components.identity.parent || "__DEFAULT_PARENT__"].components.__transform as Transform;
+            let vec = util.vectorSub(pos, parent.globalPosition);
+            vec = util.rotateVector(vec, -parent.globalRotation);
+            vec = util.vectorDivide(vec, parent.globalScale);
+            return vec;
+        },
+        revRotation: (rot: number) => {
+            let parent = parents[e.components.identity.parent || "__DEFAULT_PARENT__"].components.__transform as Transform;
+            return rot-parent.globalRotation;
         }
     };
     e.components.__transform = transform;
     e.components.__meta = {index,stub}
     console.log(e);
     return e;
+}
+
+function box2poly(org:Vector,bounds:Vector,rot:number) {
+    let ul = org;
+    let ur = util.vectorAdd(org, {x:bounds.x,y:0});
+    let ll = util.vectorAdd(org, {x:0,y:bounds.y});
+    let lr = util.vectorAdd(org, bounds);
+    let center = util.vectorAdd(org,util.vectorDivide(bounds,{x:2,y:2}));
+    ul = util.rotateVector(ul, rot, center);
+    ur = util.rotateVector(ur, rot, center);
+    ll = util.rotateVector(ll, rot, center);
+    lr = util.rotateVector(lr, rot, center);
+    return [ul,ur,lr,ll];
+}
+
+function pointInPoly(p:Vector,poly:Vector[]) {
+    let i, j, c = false;
+    for(i=0, j=poly.length-1;i<poly.length; j=i++) {
+        if(((poly[i].y>p.y)!=(poly[j].y>p.y)) &&
+            (p.x < (poly[j].x-poly[i].x) * (p.y-poly[i].y) / (poly[j].y-poly[i].y) + poly[i].x) )
+                c=!c;
+    }
+    return c;
 }
