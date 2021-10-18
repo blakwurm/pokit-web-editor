@@ -2,7 +2,7 @@
 import app from "./main";
 import { applyInheritance, resolveLineage } from "./MapCanvas";
 
-    import { appdata, entities } from "./stores";
+    import { appdata, currentBrush, entities } from "./stores";
     import { deepClone } from "./utils";
 
     let key: string = "newstub";
@@ -55,7 +55,7 @@ import { applyInheritance, resolveLineage } from "./MapCanvas";
             <div class="thingname">{k}</div>
             <div class="fauximage" style={s}></div>
             <ul>
-                <button on:click={()=>$appdata.currentBrush=k}>Make Active Brush</button>
+                <button on:click={()=>$currentBrush=k}>Make Active Brush</button>
                 <button on:click={()=>cloneStub(k)}>Clone</button>
                 <button on:click={()=>inheritStub(k)}>Inherit</button>
             </ul>
