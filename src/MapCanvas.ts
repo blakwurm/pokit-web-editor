@@ -1,6 +1,6 @@
 import { identity } from "../node_modules/svelte/internal";
 import type { EntityStub, Identity, SceneStub, Vector } from "./pokit.types";
-import { appdata, AppData, ToolType } from "./stores";
+import { appdata, AppData, spritemap, ToolType } from "./stores";
 import * as util from './utils'
 
 const POKIT_DIMS = {
@@ -22,6 +22,7 @@ export class MapCanvas {
     ctx: CanvasRenderingContext2D;
     state: AppData;
     scene: SceneStub;
+    sprites: HTMLImageElement;
     scroll: Vector;
     depth: number;
     last: Vector;
@@ -45,6 +46,7 @@ export class MapCanvas {
         this.scroll = {x:0,y:0};
         this.depth = 0;
         appdata.subscribe(this.updateState.bind(this));
+        spritemap.subscribe(this.updateSprites.bind(this));
         this.touchZones = [];
 
         c.addEventListener('mousedown',(e)=>{
@@ -169,6 +171,11 @@ export class MapCanvas {
         this.dirty = true;
     }
 
+    updateSprites(s: HTMLImageElement) {
+        this.sprites = s;
+        this.dirty = true;
+    }
+
     render() {
         this.touchZones = [];
         if (!this.scene || !this.state) {
@@ -183,7 +190,7 @@ export class MapCanvas {
         }
         entities.forEach((x)=>parents[x.components.identity.id] = x);
         entities = entities.filter(e=>e.components.identity.z >= this.depth);
-        entities.sort((a,b)=>a.components.identity.position.z-b.components.identity.position.z);
+        entities.sort((a,b)=>b.components.identity.z-a.components.identity.z);
         entities.forEach(this.renderEntity.bind(this));
         this.makeHandles(instances);
         this.renderGrid();
@@ -252,6 +259,10 @@ export class MapCanvas {
             [pos, bounds] = this.renderCameraEntity(entity);
             prio = -Infinity;
         }
+        else if(entity.components.sprite) {
+            [pos, bounds] = this.renderSpriteEntity(entity);
+            prio = -(bounds.x*bounds.y);
+        }
         else {
             [pos, bounds] = this.renderGeneralEntity(entity);
             prio = -(bounds.x*bounds.y);
@@ -278,6 +289,17 @@ export class MapCanvas {
         this.ctx.lineWidth = 1;
         this.ctx.strokeRect(pos.x, pos.y, bounds.x, bounds.y);
         return [pos, bounds] 
+    }
+
+    renderSpriteEntity(entity: EntityStub) {
+        let transform = entity.components.__transform as Transform;
+        let identity = entity.components.identity;
+        let sprite = entity.components.sprite;
+        let pos = util.pokit2canvas(this.ctx.canvas, transform.globalPosition, transform.globalBounds);
+        pos  = util.vectorSub(pos, this.scroll);
+        let source = util.vectorMultiply(sprite.source, identity.bounds);
+        this.ctx.drawImage(this.sprites, source.x, source.y, identity.bounds.x, identity.bounds.y, pos.x, pos.y, transform.globalBounds.x, transform.globalBounds.y);
+        return [pos, transform.globalBounds];
     }
 
     renderGeneralEntity(entity: EntityStub) {

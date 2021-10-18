@@ -24,6 +24,7 @@ export async function parseFolder(files: FileList) {
         let type = path[1]
         let loaded: any
         if (v.type === 'application/json') {
+            if(filename === "tsconfig.json") continue;
             loaded = JSON.parse(await v.text())
         } else {
             loaded = v.stream()
