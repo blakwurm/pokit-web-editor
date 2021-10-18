@@ -399,6 +399,9 @@ export class MapCanvas {
             this.ctx.lineWidth = 3;
             this.rotate(rot, center);
             this.makeRotateHandle(instances);
+            this.makeCornerScaleHandle(instances);
+            this.makeHorizontalScaleHandle(instances);
+            this.makeVerticalScaleHandle(instances);
             this.makeMoveHandle(instances);
             this.restore();
         }
@@ -510,6 +513,141 @@ export class MapCanvas {
                 }
             }
         )
+    }
+
+    makeCornerScaleHandle(instances: Record<string, EntityStub[]>) {
+        let [scene,stub,index] = this.state.inspecting;
+        let resolved = instances[stub][index];
+        let center = resolved.components.__transform.globalPosition;
+        let bounds = resolved.components.__transform.globalBounds;
+        center = util.vectorSub(center, this.scroll);
+        center = util.pokit2canvas(this.ctx.canvas, center);
+        let hBounds = util.vectorDivide(bounds, {x:2,y:2})
+        let org = util.vectorAdd(center, hBounds);
+        org = util.vectorSub(org, {x:5,y:5});
+        this.ctx.fillRect(org.x,org.y, 10, 10);
+        this.touchZones.push({
+            priority: Infinity,
+            origin: util.rotateVector(org, resolved.components.__transform.globalRotation, center),
+            bounds: {x:10,y:10},
+            rotation: resolved.components.__transform.globalRotation,
+            callback: ()=>{
+                let cb=(e: MouseEvent)=>{
+                    if(!this.mDown){
+                        appdata.update(a=>{
+                            delete a.handling;
+                            return a;
+                        })
+                        appdata.filter(a=>!a.handling);
+                        this.ctx.canvas.removeEventListener("mousemove", cb);
+                        return;
+                    }
+                    let scale = this.calculateScale(resolved, e);
+                    appdata.update(a=>{
+                        a.handling = true;
+                        a.scenes[scene].entities[stub][index].scale = scale;
+                        return a;
+                    })
+                }
+                this.ctx.canvas.addEventListener("mousemove", cb);
+            }
+        })
+    }
+
+    makeHorizontalScaleHandle(instances: Record<string,EntityStub[]>) {
+        let [scene,stub,index] = this.state.inspecting;
+        let resolved = instances[stub][index];
+        let center = resolved.components.__transform.globalPosition;
+        let bounds = resolved.components.__transform.globalBounds;
+        center = util.vectorSub(center, this.scroll);
+        center = util.pokit2canvas(this.ctx.canvas, center);
+        let hBounds = util.vectorDivide(bounds, {x:2,y:2})
+        let org = {
+            x: center.x + hBounds.x - 5,
+            y: center.y 
+        }
+        this.ctx.fillRect(org.x,org.y, 10, 10);
+        this.touchZones.push({
+            priority: Infinity,
+            origin: util.rotateVector(org, resolved.components.__transform.globalRotation, center),
+            bounds: {x:10,y:10},
+            rotation: resolved.components.__transform.globalRotation,
+            callback: ()=>{
+                let cb=(e: MouseEvent)=>{
+                    if(!this.mDown){
+                        appdata.update(a=>{
+                            delete a.handling;
+                            return a;
+                        })
+                        appdata.filter(a=>!a.handling);
+                        this.ctx.canvas.removeEventListener("mousemove", cb);
+                        return;
+                    }
+                    let scale = this.calculateScale(resolved, e);
+                    appdata.update(a=>{
+                        a.handling = true;
+                        a.scenes[scene].entities[stub][index].scale.x = scale.x;
+                        return a;
+                    })
+                }
+                this.ctx.canvas.addEventListener("mousemove", cb);
+            }
+        })
+    }
+
+    makeVerticalScaleHandle(instances: Record<string,EntityStub[]>) {
+        let [scene,stub,index] = this.state.inspecting;
+        let resolved = instances[stub][index];
+        let center = resolved.components.__transform.globalPosition;
+        let bounds = resolved.components.__transform.globalBounds;
+        center = util.vectorSub(center, this.scroll);
+        center = util.pokit2canvas(this.ctx.canvas, center);
+        let hBounds = util.vectorDivide(bounds, {x:2,y:2})
+        let org = {
+            x: center.x,
+            y: center.y + hBounds.y - 5 
+        }
+        this.ctx.fillRect(org.x,org.y, 10, 10);
+        this.touchZones.push({
+            priority: Infinity,
+            origin: util.rotateVector(org, resolved.components.__transform.globalRotation, center),
+            bounds: {x:10,y:10},
+            rotation: resolved.components.__transform.globalRotation,
+            callback: ()=>{
+                let cb=(e: MouseEvent)=>{
+                    if(!this.mDown){
+                        appdata.update(a=>{
+                            delete a.handling;
+                            return a;
+                        })
+                        appdata.filter(a=>!a.handling);
+                        this.ctx.canvas.removeEventListener("mousemove", cb);
+                        return;
+                    }
+                    let scale = this.calculateScale(resolved, e);
+                    appdata.update(a=>{
+                        a.handling = true;
+                        a.scenes[scene].entities[stub][index].scale.y = scale.y;
+                        return a;
+                    })
+                }
+                this.ctx.canvas.addEventListener("mousemove", cb);
+            }
+        })
+    }
+
+    calculateScale(resolved: EntityStub, e: MouseEvent) {
+        let center = resolved.components.__transform.globalPosition;
+        center = util.vectorSub(center, this.scroll);
+        center = util.pokit2canvas(this.ctx.canvas, center);
+        let pos = util.screen2canvas(this.ctx.canvas, e);
+        pos = util.vectorAdd(pos, this.scroll);
+        pos = util.rotateVector(pos, -resolved.components.__transform.globalRotation, center);
+        let scale = resolved.components.identity.bounds;
+        let dif = util.vectorSub(pos, center);
+        scale = util.vectorDivide(dif, scale);
+        scale = util.vectorMultiply(scale, {x:2,y:2});
+        return resolved.components.__transform.revScale(scale);
     }
 
     snap(vec:Vector) {
@@ -658,6 +796,10 @@ function addMeta(e: EntityStub, index: number, stub: string) {
         revRotation: (rot: number) => {
             let parent = parents[e.components.identity.parent || "__DEFAULT_PARENT__"].components.__transform as Transform;
             return rot-parent.globalRotation;
+        },
+        revScale: (scale: Vector) => {
+            let parent = parents[e.components.identity.parent || "__DEFAULT_PARENT__"].components.__transform as Transform;
+            return util.vectorDivide(scale, parent.globalScale);
         }
     };
     e.components.__transform = transform;

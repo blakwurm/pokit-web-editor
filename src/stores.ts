@@ -138,7 +138,7 @@ spritemap.subscribe((s)=>{
 
 export let projectName = new NestedStore<string>(appdata, "manifest", "name")
 
-export let currentBrushName = new NestedStore<string>(appdata, "currentBrush")
+export let currentBrush = new NestedStore<string>(appdata, "currentBrush")
 
 export let currentTool = new NestedStore<ToolType>(appdata, "currentTool");
 
