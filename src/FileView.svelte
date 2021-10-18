@@ -1,6 +1,6 @@
 <script lang="ts">
 import { onMount } from "svelte";
-import { parseFolder } from "./importer";
+import { parseFolder, save } from "./FileMarshall";
 import { projectName, appdata } from './stores'
 
 
@@ -34,7 +34,7 @@ import { projectName, appdata } from './stores'
     <!--TODO: Remember to add modal asking 'are you sure'-->
     <button>Clear Project</button>
     <button on:click={()=>inputter.click()}>Open Project</button>
-    <button>Save Project</button>
+    <button on:click={save}>Save Project</button>
 </div>
 <div>
     <div>
@@ -46,7 +46,6 @@ import { projectName, appdata } from './stores'
         <label for="addfile" class="filehider">add a file to project</label>
         <input id="addfile" type="file" on:input="{foo}">
     </div>
-
 </div>
 <div>{JSON.stringify($appdata)}</div>
 

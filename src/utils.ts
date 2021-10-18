@@ -468,3 +468,13 @@ export function pokit2screen(c: HTMLCanvasElement, p: Vector, b?: Vector) {
   let p2c = pokit2canvas(c, p, b);
   return canvas2screen(c, p2c);
 }
+
+export function img2b64(img: HTMLImageElement) {
+    let c = document.createElement('canvas');
+    let ctx = c.getContext('2d');
+    c.height = img.naturalHeight;
+    c.width = img.naturalWidth;
+    ctx.drawImage(img,0,0, img.naturalWidth,img.naturalHeight);
+    let b64 = c.toDataURL();
+    return b64.substring(22);
+}

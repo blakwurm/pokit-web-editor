@@ -1,5 +1,12 @@
 import type { CartManifest, EntityStub, SceneStub } from "./pokit.types"
-import { AppData, appdata } from './stores'
+import { AppData, appdata, cachedb64 } from './stores'
+import JSZip from "jszip"
+import FileSaver from "file-saver"
+import { canvas2pokit, img2b64 } from "./utils";
+
+let state: AppData;
+
+appdata.subscribe((a)=>state=a);
 
 export async function parseFolder(files: FileList) {
     let entities: Record<string, EntityStub> = {}
@@ -27,6 +34,7 @@ export async function parseFolder(files: FileList) {
         if (filename === 'sprites.png') {
             console.log('doing image')
             sprites = await loadimage(v)
+            cachedb64.dirty = true;
             console.log('image done')
         }
         switch(type) {
@@ -82,4 +90,32 @@ async function loadimage(blob: Blob): Promise<HTMLImageElement> {
     let i = new Image();
     i.src = URL.createObjectURL(blob);
     return i
+}
+
+export async function getFiles() {
+    let files: Record<string,string> = {};
+    let entityShards: string[] = [];
+    let sceneShards: string[] = [];
+    for(let [k,v] of Object.entries(state.entities)) {
+        files[`entities/${k}.json`] = JSON.stringify(v, null, 2);
+        entityShards.push(k+'.json');
+    }
+    for(let [k,v] of Object.entries(state.scenes)) {
+        files[`scenes/${k}.json`] = JSON.stringify(v, null, 2);
+        sceneShards.push(k+'.json');
+    }
+    let manifest = Object.assign({},state.manifest,{entityShards,sceneShards});
+    files['cart.json'] = JSON.stringify(manifest, null, 2);
+    let img = img2b64(state.spritemap);
+    img = atob(img);
+    return {files,img};
+}
+
+export async function save() {
+    let zip = new JSZip();
+    let {files, img} = await getFiles();
+    Object.entries(files).forEach(([k,v])=>zip.file(k,v));
+    zip.file("sprites.png", img, {binary:true})
+    let file = await zip.generateAsync({type: "blob"});
+    FileSaver.saveAs(file, state.manifest.name+".zip");
 }

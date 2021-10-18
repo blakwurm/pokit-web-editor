@@ -5,6 +5,7 @@ import type {Writable} from 'svelte/store'
 
 import type { CartManifest, EntityStub, Identity, SceneStub } from './pokit.types'
 import NestedStore from './NestedStore'
+import { deepClone, img2b64 } from './utils'
 
 export interface AppData {
     spritemap: HTMLImageElement
@@ -36,60 +37,92 @@ export enum ValueType {
     OBJECT
 }
 
+const templates = {
+    get newProject(): AppData {
+        return {
+            currentScene: 'defaultscene',
+            manifest: {
+                name:"New Editor Project",
+                author:"Some Cool Person",
+                defaultScene: 'defaultScene',
+                modules: ["@pokit:Engine","@pokit:Jewls","@pokit:Physics","@pokit:Debug"],
+                scripts: [],
+            } as CartManifest,
+            spritemap: new Image(),
+            scenes: {
+                defaultscene: {systems: [], entities:{
+                    square:[{id:"main_guy"}],
+                    camera:[{parent:"main_guy"}]
+                }} as SceneStub
+            },
+            currentBrush: 'square',
+            currentTool: ToolType.SELECT,
+            entities: {
+                defaultbrush: {inherits: [], components: {
+                    dowap: {color: [255, 255, 234, 200]},
+                    fak:{blob:false,notblob:['a','b','c']},
+                    compy:{dillweed:{potsmoke:{true:false}}}}} as EntityStub,
+                square: {
+                    inherits: [],
+                    components: {
+                        identity: {
+                            position:{
+                                x: 0,
+                                y: 0
+                            },
+                        },
+                        debug:{
+                            color:[0,255,0,255]
+                        }
+                    }
+                },
+                camera: {
+                    inherits: [],
+                    components: {
+                        camera:{
+                            isMainCamera:true
+                        }
+                    }
+                }
+            },
+            inspecting: ['defaultscene', 'square', 0],
+            isDragging: false
+        }
+    }
+}
+
+let stateString = localStorage.getItem("project");
+let state = stateString ? JSON.parse(stateString) : templates.newProject;
+
+export let cachedb64 = {
+    value: "",
+    dirty: false
+}
+
+if(typeof state.spritemap === 'string') {
+    let img = new Image();
+    img.onload=()=>cachedb64.value=img2b64(img);
+    img.src = 'data:image/png;base64,' + state.spritemap;
+    state.spritemap = img;
+}
+
+
 export function iterate_enum(stupidenum: pojo) {
     let foo = Object.entries(stupidenum).filter(([e])=>isNaN(Number(e)))
     return foo
 }
 
-export let appdata = love.undoStore(writable({
-    currentScene: 'defaultscene',
-    manifest: {
-        name:"New Editor Project",
-        author:"Some Cool Person",
-        defaultScene: 'defaultScene',
-        modules: ["@pokit:Engine","@pokit:Jewls","@pokit:Physics","@pokit:Debug"],
-        scripts: [],
-    } as CartManifest,
-    spritemap: new Image(),
-    scenes: {
-        defaultscene: {systems: [], entities:{
-            square:[{id:"main_guy"}],
-            camera:[{parent:"main_guy"}]
-        }} as SceneStub
-    },
-    currentBrush: 'square',
-    currentTool: ToolType.SELECT,
-    entities: {
-        defaultbrush: {inherits: [], components: {
-            dowap: {color: [255, 255, 234, 200]},
-            fak:{blob:false,notblob:['a','b','c']},
-            compy:{dillweed:{potsmoke:{true:false}}}}} as EntityStub,
-        square: {
-            inherits: [],
-            components: {
-                identity: {
-                    position:{
-                        x: 0,
-                        y: 0
-                    },
-                },
-                debug:{
-                    color:[0,255,0,255]
-                }
-            }
-        },
-        camera: {
-            inherits: [],
-            components: {
-                camera:{
-                    isMainCamera:true
-                }
-            }
-        }
-    },
-    inspecting: ['defaultscene', 'square', 0],
-    isDragging: false
-} as AppData))
+export let appdata = love.undoStore(writable(state as AppData))
+
+appdata.subscribe((a)=>{
+    let c = deepClone(a);
+    if(cachedb64.dirty){
+        cachedb64.dirty = false;
+        cachedb64.value = img2b64(a.spritemap);
+    }
+    c.spritemap = cachedb64.value;
+    localStorage.setItem("project", JSON.stringify(c));
+})
 
 export let projectName = love.subStore(appdata, (a:AppData)=>a.manifest.name)
 

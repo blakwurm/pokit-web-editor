@@ -1,7 +1,7 @@
 <script lang="ts">
     import Split from '@geoffcox/svelte-splitter/src/Split.svelte'
 	import MapView from './MapView.svelte'
-	import InspectorView from './InspectorNew.svelte'
+	import InspectorView from './InspectorView.svelte'
 	import PaletteView from './PaletteView.svelte'
 	import FileView from './FileView.svelte'
     import type { MapCanvas } from "./MapCanvas";
