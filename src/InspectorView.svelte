@@ -12,12 +12,15 @@ import ArrayItem from "./component-items/ArrayItem.svelte";
   $: nest_root = new NestedStore(appdata, "entities", $appdata.currentBrush);
   let nest = nest_root.drill("components")
   $: nest = nest_root.drill("components")
-  $entities["__DEFAULT_PARENT__"] = {
-    inherits: [],
-    components: {
-      identity: defaultParentNoGlobals
-    }
-  };
+  entities.update(e=>{
+    e["__DEFAULT_PARENT__"] = {
+      inherits: [],
+      components: {
+        identity: defaultParentNoGlobals
+      }
+    };
+    return e;
+  });
   $:lin = resolveLineage($appdata.currentBrush, $appdata.entities);
   $:lin.push("__DEFAULT_PARENT__")
   $:prototype = applyInheritance(lin, $appdata.entities) as EntityStub;

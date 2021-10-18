@@ -1,5 +1,5 @@
 import type { CartManifest, EntityStub, SceneStub } from "./pokit.types"
-import { AppData, appdata, cachedb64 } from './stores'
+import { AppData, appdata, cachedb64, spritemap } from './stores'
 import JSZip from "jszip"
 import FileSaver from "file-saver"
 import { canvas2pokit, img2b64 } from "./utils";
@@ -12,7 +12,7 @@ export async function parseFolder(files: FileList) {
     let entities: Record<string, EntityStub> = {}
     let scenes: Record<string, SceneStub> = {}
     let cart: CartManifest
-    let sprites: HTMLImageElement
+    let sprites: string;
     console.log('beginning importing')
     for (let [k,v] of Object.entries(files)) {
         if (k === 'length') {
@@ -33,8 +33,7 @@ export async function parseFolder(files: FileList) {
         }
         if (filename === 'sprites.png') {
             console.log('doing image')
-            sprites = await loadimage(v)
-            cachedb64.dirty = true;
+            sprites = URL.createObjectURL(v);
             console.log('image done')
         }
         switch(type) {
@@ -59,7 +58,6 @@ export async function parseFolder(files: FileList) {
     console.log('updating appdata')
     appdata.update((appdata: AppData) => {
         if (appdata.manifest.name === "New Editor Project") {
-            appdata.spritemap = sprites
             Object.assign(appdata.manifest, cart)
             // TODO: add importing of other props when not default name
             if(Object.keys(scenes).length) appdata.scenes = {};
@@ -84,12 +82,10 @@ export async function parseFolder(files: FileList) {
         appdata.currentScene = cart.defaultScene || appdata.currentScene
         return appdata 
     })
-}
-
-async function loadimage(blob: Blob): Promise<HTMLImageElement> {
-    let i = new Image();
-    i.src = URL.createObjectURL(blob);
-    return i
+    spritemap.update(s=>{
+        s.src = sprites;
+        return s;
+    })
 }
 
 export async function getFiles() {
@@ -106,8 +102,7 @@ export async function getFiles() {
     }
     let manifest = Object.assign({},state.manifest,{entityShards,sceneShards});
     files['cart.json'] = JSON.stringify(manifest, null, 2);
-    let img = img2b64(state.spritemap);
-    img = atob(img);
+    let img = atob(cachedb64.value);
     return {files,img};
 }
 

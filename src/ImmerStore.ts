@@ -8,15 +8,20 @@ export default class ImmerStore<T> implements Writable<T> {
   private states: T[];
   private index = 0;
   constructor(value: T) {
-    this.states = [value];
+    this.states = [produce(value, (d)=>value) as T];
     this.subs = new Set();
   }
   get currentState() {
     return this.states[this.index];
   }
   set(value: T): void {
-    this.states = [value];
-    this.index = 0;
+    if(this.canRedo) {
+      let del = this.index -1;
+      this.states.splice(del, this.states.length - del);
+    }
+    this.index = this.states.length;
+    this.states.push(value);
+    console.log(this.index,this.states,this.currentState);
     this.updateSubscribers();
   }
   update(updater: (obj: T)=>T) {

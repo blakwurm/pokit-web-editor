@@ -9,8 +9,7 @@ import { deepClone, img2b64 } from './utils'
 import ImmerStore from './ImmerStore.js'
 
 export interface AppData {
-    handling?: boolean;
-    spritemap: HTMLImageElement
+    handling?: boolean
     manifest: CartManifest
     entities: Record<string, EntityStub>
     scenes: Record<string, SceneStub>
@@ -41,8 +40,6 @@ export enum ValueType {
 
 export const templates = {
     get newProject(): AppData {
-        let img = new Image()
-        img.src = '../img/sprites.png'
         return {
             currentScene: 'defaultscene',
             manifest: {
@@ -52,7 +49,6 @@ export const templates = {
                 modules: ["@pokit:Engine","@pokit:Jewls","@pokit:Physics","@pokit:Debug"],
                 scripts: [],
             } as CartManifest,
-            spritemap: img,
             scenes: {
                 defaultscene: {systems: [], entities:{
                     square:[{id:"main_guy"}],
@@ -88,28 +84,38 @@ export const templates = {
             inspecting: ['defaultscene', 'square', 0],
             isDragging: false
         }
-    }
+    },
+    spritemap: "../img/sprites.png"
+}
+
+export let cachedb64 = {
+    value: "",
+    dirty: true,
 }
 
 let stateString = localStorage.getItem("project");
 let state = stateString ? JSON.parse(stateString) : templates.newProject;
 
-export let cachedb64 = {
-    value: "",
-    dirty: false,
-    true:false
+let img = new Image();
+img.onload = ()=> {
+    cachedb64.dirty = false;
+    cachedb64.value = img2b64(img);
+    ldb.set("spritemap", cachedb64.value);
 }
+img.src = templates.spritemap;
+export let spritemap = writable(img);
+
 async function loadImageFromLocalstorage() {
     let imgdata = await ldb.aget('spritemap')
-    let img = new Image();
+    if(!imgdata) return;
     // img.onload=()=>cachedb64.value=imgdata;
+    spritemap.update(s=>{
+        s.src = 'data:image/png;base64,' + imgdata;
+        return s;
+    }) 
     cachedb64.value=imgdata
-    img.src = 'data:image/png;base64,' + imgdata;
-    state.spritemap = img;
 }
-if(!state.spritemap) {
-    loadImageFromLocalstorage()
-}
+loadImageFromLocalstorage();
 
 
 export function iterate_enum(stupidenum: pojo) {
@@ -123,26 +129,18 @@ export let appdata = new ImmerStore<AppData>(state as AppData);
 appdata.subscribe((a)=>{
     let c = deepClone(a);
     delete c.spritemap
-    if(cachedb64.dirty){
-        cachedb64.dirty = false;
-        a.spritemap.onload = () => {
-            console.log('filthy bitch')
-            cachedb64.value = img2b64(a.spritemap);
-            console.log(cachedb64)
-            // c.spritemap = cachedb64.value;
-            // localStorage.setItem("project", JSON.stringify(c));
-            ldb.set('spritemap', cachedb64.value)
-        }
-    } 
-    // c.spritemap = cachedb64.value;
     localStorage.setItem("project", JSON.stringify(c));
+})
+
+spritemap.subscribe((s)=>{
+    cachedb64.dirty = true;
 })
 
 export let projectName = new NestedStore<string>(appdata, "manifest", "name")
 
 export let currentBrushName = new NestedStore<string>(appdata, "currentBrush")
 
-export let currentTool = new NestedStore<string>(appdata, "currentTool");
+export let currentTool = new NestedStore<ToolType>(appdata, "currentTool");
 
 export let entities = new NestedStore<EntityStub[]>(appdata, "entities")
 

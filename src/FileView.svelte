@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMount } from "svelte";
 import { parseFolder, save } from "./FileMarshall";
-import { projectName, appdata, templates, cachedb64} from './stores'
+import { projectName, appdata, templates, spritemap} from './stores'
 
 
     export let filetext = "Get File"
@@ -14,12 +14,16 @@ import { projectName, appdata, templates, cachedb64} from './stores'
     }
     function add_folder(ev: any) {
         let t = ev.target as HTMLInputElement
+        if(t.files.length === 0) return;
         parseFolder(t.files)
-        console.log('parsed')
     }
     function clear_project(ev: any) {
-        cachedb64.dirty = true
         $appdata = templates.newProject
+        spritemap.update(s=>{
+            s.src = templates.spritemap;
+            return s;
+        })
+        console.log($appdata);
     }
 
     $: console.log($projectName)
