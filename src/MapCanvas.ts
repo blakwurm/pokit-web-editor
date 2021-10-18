@@ -1,6 +1,6 @@
 import { identity } from "../node_modules/svelte/internal";
 import type { EntityStub, Identity, SceneStub, Vector } from "./pokit.types";
-import { appdata, AppData, currentScene, ToolType } from "./stores";
+import { appdata, AppData, ToolType } from "./stores";
 import * as util from './utils'
 
 const POKIT_DIMS = {
@@ -45,8 +45,6 @@ export class MapCanvas {
         this.scroll = {x:0,y:0};
         this.depth = 0;
         appdata.subscribe(this.updateState.bind(this));
-        currentScene.subscribe(this.updateCurrentScene.bind(this));
-        appdata.canUndo.subscribe((v)=>this.canUndo=v)
         this.touchZones = [];
 
         c.addEventListener('mousedown',(e)=>{
@@ -108,18 +106,24 @@ export class MapCanvas {
                         stub.splice(index,1);
                         return a;
                     })
+                    break;
                 case "z":
                     if(this.presses.has("Control")) {
                         appdata.undo();
-                        this.dirty = true;
                     }
+                    break;
+                case "Z":
+                    if(this.presses.has("Control")) {
+                        appdata.redo();
+                    }
+                    break;
                 case "ArrowRight":
                     if(this.presses.has("Control")) {
                         console.log("right");
                         appdata.update((a)=>{
                             let [scene,stub,index] = a.inspecting;
                             let sStub = a.scenes[scene] || {entities:{}};
-                            let eStub = sStub[stub] || [];
+                            let eStub = sStub.entities[stub] || [];
                             let selected = eStub[index];
                             if(!selected) return a;
                             selected.rotation += 90;
@@ -134,7 +138,7 @@ export class MapCanvas {
                         appdata.update((a)=>{
                             let [scene,stub,index] = a.inspecting;
                             let sStub = a.scenes[scene] || {entities:{}};
-                            let eStub = sStub[stub] || [];
+                            let eStub = sStub.entities[stub] || [];
                             let selected = eStub[index];
                             if(!selected) return a;
                             selected.rotation -= 90;
@@ -161,11 +165,7 @@ export class MapCanvas {
 
     updateState(a: AppData) {
         this.state = a;
-        this.dirty = true;
-    }
-
-    updateCurrentScene(s: SceneStub) {
-        this.scene = s;
+        this.scene = a.scenes[a.currentScene];
         this.dirty = true;
     }
 
@@ -224,7 +224,7 @@ export class MapCanvas {
         parents["__DEFAULT_PARENT__"] = entities["__DEFAULT_PARENT__"]
 
         let index = 0;
-        return instances.map(i=>{
+        return (<Identity[]>deepClone(instances)).map(i=>{
             let lineage = resolveLineage(stubId, entities);
             let identity = i;
             identity.id = identity.id || stubId + index.toString();
@@ -405,6 +405,11 @@ export class MapCanvas {
             callback: ()=>{
                 let cb=(e: MouseEvent)=>{
                     if(!this.mDown){
+                        appdata.update(a=>{
+                            delete a.handling;
+                            return a;
+                        })
+                        appdata.filter(a=>!a.handling);
                         this.ctx.canvas.removeEventListener("mousemove", cb);
                         return;
                     }
@@ -414,6 +419,7 @@ export class MapCanvas {
                     let [scene,stub,index] = this.state.inspecting;
                     this.state;
                     appdata.update(a=>{
+                        a.handling = true;
                         a.scenes[scene].entities[stub][index].position = resolved.components.__transform.revPosition(pos);
                         return a;
                     });
@@ -452,6 +458,11 @@ export class MapCanvas {
                 callback: ()=>{
                     let cb=(e: MouseEvent)=>{
                         if(!this.mDown){
+                            appdata.update(a=>{
+                                delete a.handling;
+                                return a;
+                            })
+                            appdata.filter(a=>!a.handling)
                             this.ctx.canvas.removeEventListener("mousemove", cb);
                             return;
                         }
@@ -468,6 +479,7 @@ export class MapCanvas {
                         let snap = this.presses.has("Shift") ? 45 : 22.5;
                         deg = this.presses.has("Control") ? Math.round(deg/snap) * snap : deg;
                         appdata.update(a=>{
+                            a.handling = true;
                             a.scenes[scene].entities[stub][index].rotation = resolved.components.__transform.revRotation(deg);
                             return a;
                         })
@@ -545,21 +557,25 @@ export function deepMergeNoConcat(o: any, ...arr: any[]) {
   return ret;
 }
 
+// export function deepClone(o: any): any {
+//   if(Array.isArray(o)) {
+//     let r = [];
+//     for(let v of o) {
+//       if(typeof v === "object") r.push(deepClone(v));
+//       else r.push(v);
+//     }
+//     return r;
+//   }
+//   let r = {} as any;
+//   for(let [k,v] of Object.entries(o)) {
+//     if(typeof v === "object") r[k] = deepClone(v);
+//     else r[k] = v;
+//   }
+//   return r;
+// }
+
 export function deepClone(o: any): any {
-  if(Array.isArray(o)) {
-    let r = [];
-    for(let v of o) {
-      if(typeof v === "object") r.push(deepClone(v));
-      else r.push(v);
-    }
-    return r;
-  }
-  let r = {} as any;
-  for(let [k,v] of Object.entries(o)) {
-    if(typeof v === "object") r[k] = deepClone(v);
-    else r[k] = v;
-  }
-  return r;
+    return JSON.parse(JSON.stringify(o));
 }
 
 export function resolveLineage(stub: string, entities: Record<string,EntityStub>) {

@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMount } from "svelte";
 import type { MapCanvas } from "./MapCanvas";
-import { appdata, iterate_enum, ToolType } from "./stores";
+import { appdata, currentTool, iterate_enum, ToolType } from "./stores";
 import { screenOffset } from "./utils";
 
 
@@ -27,7 +27,7 @@ import { screenOffset } from "./utils";
     let currentool = ToolType.BRUSH
     function bestoflu(k,v) {
         return function(ev) {
-            $appdata.currentTool = v as ToolType
+            $currentTool = v as ToolType
         }
     }
 

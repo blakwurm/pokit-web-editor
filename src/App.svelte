@@ -4,7 +4,6 @@
 	import * as util from './util.js'
 import { MapCanvas } from './MapCanvas';
 import DesktopView from './DesktopView.svelte'
-import { appdata } from './stores';
 import './localStorageDB.js'
 
 
@@ -20,8 +19,6 @@ import './localStorageDB.js'
 	let innerWidth = window.innerWidth
 	let innerHeight = window.innerHeight
 
-
-	$:console.log($appdata.currentBrush);
 </script>
 
 <svelte:window bind:innerHeight bind:innerWidth />

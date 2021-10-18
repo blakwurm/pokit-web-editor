@@ -1,17 +1,18 @@
 <script lang="ts">
   import NestedStore from "./NestedStore"
   import ObjectEditor from "./component-items/ObjectEditor.svelte"
-  import {appdata, currentBrush} from "./stores"
+  import {appdata, entities} from "./stores"
   import { deepClone, defaultParentNoGlobals } from "./utils";
   import { applyInheritance, resolveLineage } from "./MapCanvas"
 import type { EntityStub } from "./pokit.types";
 import ArrayItem from "./component-items/ArrayItem.svelte";
 
+  console.log(appdata);
   let nest_root = new NestedStore(appdata, "entities", $appdata.currentBrush);
   $: nest_root = new NestedStore(appdata, "entities", $appdata.currentBrush);
   let nest = nest_root.drill("components")
   $: nest = nest_root.drill("components")
-  $appdata.entities["__DEFAULT_PARENT__"] = {
+  $entities["__DEFAULT_PARENT__"] = {
     inherits: [],
     components: {
       identity: defaultParentNoGlobals
@@ -20,7 +21,6 @@ import ArrayItem from "./component-items/ArrayItem.svelte";
   $:lin = resolveLineage($appdata.currentBrush, $appdata.entities);
   $:lin.push("__DEFAULT_PARENT__")
   $:prototype = applyInheritance(lin, $appdata.entities) as EntityStub;
-  $:console.log($appdata.currentBrush, $nest_root)
   let key: string = "newcomp"
   let inherits = nest_root.drill("inherits") as NestedStore<string[]>
 

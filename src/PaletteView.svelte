@@ -2,7 +2,7 @@
 import app from "./main";
 import { applyInheritance, resolveLineage } from "./MapCanvas";
 
-    import { appdata } from "./stores";
+    import { appdata, entities } from "./stores";
     import { deepClone } from "./utils";
 
     let key: string = "newstub";
@@ -11,20 +11,19 @@ import { applyInheritance, resolveLineage } from "./MapCanvas";
 
     function cloneStub(name:string) {
         let newStub = deepClone($appdata.entities[name]);
-        $appdata.entities[key] = newStub;
+        $entities[key] = newStub;
     }
     function inheritStub(name:string) {
-        $appdata.entities[key] = {
+        $entities[key] = {
             inherits: [name],
             components: {}
         }
     }
     function newStub() {
-        $appdata.entities[key] = {
+        $entities[key] = {
             inherits:[],
             components:{}
         }
-        console.log($appdata);
     }
     function enumerate(obj: pojo) {
         let clone = deepClone(obj);
@@ -39,7 +38,6 @@ import { applyInheritance, resolveLineage } from "./MapCanvas";
                 ${color[2]},
                 ${color[3]/255},
             );`
-            console.log(style);
             return [k,style]
         });
     }

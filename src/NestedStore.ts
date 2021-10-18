@@ -1,24 +1,17 @@
-import type { UndoRedoStore } from "immer-loves-svelte";
 import type { Writable } from "../node_modules/svelte/types/runtime/store";
-
+import type ImmerStore from "./ImmerStore";
 type Key = string | number;
 
-export default class NestedStore<T> implements UndoRedoStore<T> {
-  base: UndoRedoStore<pojo>;
-  undo: ()=>void;
-  redo: ()=>void;
-  clear: ()=>void;
+export default class NestedStore<T> implements Writable<T> {
+  base: Writable<pojo>;
   path: Key[];
 
   get key() {
     return this.path[this.path.length-1]
   }
 
-  constructor(store: UndoRedoStore<pojo>, ...path: Key[]) {
+  constructor(store: Writable<pojo>, ...path: Key[]) {
     this.base = store;
-    this.undo = store.undo;
-    this.redo = store.redo;
-    this.clear = store.clear;
     this.path = path;
   }
 
@@ -61,8 +54,4 @@ export default class NestedStore<T> implements UndoRedoStore<T> {
   drill(...path: Key[]) {
     return new NestedStore(this.base, ...this.path, ...path);
   }
-
-  get canRedo() {return this.base.canRedo}
-  get canUndo() {return this.base.canUndo}
-
 }
