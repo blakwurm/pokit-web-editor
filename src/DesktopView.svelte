@@ -18,6 +18,8 @@
     $: screendims = {width: mainWidth, height: mainHeight}
 </script>
 
+<div id="menubar">
+</div>
 
 <div id="content" style="--canvwidth:{mainWidth}px;--canvheight:{mainHeight}px;">
     <input id="widesplit" type="range" min=0 max=1 step=0.01 bind:value={splitWidth}>

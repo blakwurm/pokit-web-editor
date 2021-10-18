@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMount } from "svelte";
 import { parseFolder, save } from "./FileMarshall";
-import { projectName, appdata } from './stores'
+import { projectName, appdata, templates, cachedb64} from './stores'
 
 
     export let filetext = "Get File"
@@ -16,6 +16,10 @@ import { projectName, appdata } from './stores'
         let t = ev.target as HTMLInputElement
         parseFolder(t.files)
         console.log('parsed')
+    }
+    function clear_project(ev: any) {
+        cachedb64.dirty = true
+        $appdata = templates.newProject
     }
 
     $: console.log($projectName)
@@ -32,8 +36,8 @@ import { projectName, appdata } from './stores'
 <div>
     
     <!--TODO: Remember to add modal asking 'are you sure'-->
-    <button>Clear Project</button>
-    <button on:click={()=>inputter.click()}>Open Project</button>
+    <button on:click={clear_project}>Clear Project</button>
+    <button on:click={(ev)=>{clear_project(ev);inputter.click()}}>Open Project</button>
     <button on:click={save}>Save Project</button>
 </div>
 <div>

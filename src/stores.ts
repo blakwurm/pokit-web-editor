@@ -2,6 +2,7 @@
 import * as love from 'immer-loves-svelte'
 import { writable } from 'svelte/store'
 import type {Writable} from 'svelte/store'
+import './localStorageDB.js'
 
 import type { CartManifest, EntityStub, Identity, SceneStub } from './pokit.types'
 import NestedStore from './NestedStore'
@@ -37,8 +38,10 @@ export enum ValueType {
     OBJECT
 }
 
-const templates = {
+export const templates = {
     get newProject(): AppData {
+        let img = new Image()
+        img.src = '../img/sprites.png'
         return {
             currentScene: 'defaultscene',
             manifest: {
@@ -48,7 +51,7 @@ const templates = {
                 modules: ["@pokit:Engine","@pokit:Jewls","@pokit:Physics","@pokit:Debug"],
                 scripts: [],
             } as CartManifest,
-            spritemap: new Image(),
+            spritemap: img,
             scenes: {
                 defaultscene: {systems: [], entities:{
                     square:[{id:"main_guy"}],
@@ -58,10 +61,6 @@ const templates = {
             currentBrush: 'square',
             currentTool: ToolType.SELECT,
             entities: {
-                defaultbrush: {inherits: [], components: {
-                    dowap: {color: [255, 255, 234, 200]},
-                    fak:{blob:false,notblob:['a','b','c']},
-                    compy:{dillweed:{potsmoke:{true:false}}}}} as EntityStub,
                 square: {
                     inherits: [],
                     components: {
@@ -96,14 +95,19 @@ let state = stateString ? JSON.parse(stateString) : templates.newProject;
 
 export let cachedb64 = {
     value: "",
-    dirty: false
+    dirty: false,
+    true:false
 }
-
-if(typeof state.spritemap === 'string') {
+async function loadImageFromLocalstorage() {
+    let imgdata = await ldb.aget('spritemap')
     let img = new Image();
-    img.onload=()=>cachedb64.value=img2b64(img);
-    img.src = 'data:image/png;base64,' + state.spritemap;
+    // img.onload=()=>cachedb64.value=imgdata;
+    cachedb64.value=imgdata
+    img.src = 'data:image/png;base64,' + imgdata;
     state.spritemap = img;
+}
+if(!state.spritemap) {
+    loadImageFromLocalstorage()
 }
 
 
@@ -115,12 +119,21 @@ export function iterate_enum(stupidenum: pojo) {
 export let appdata = love.undoStore(writable(state as AppData))
 
 appdata.subscribe((a)=>{
+    console.log(a)
     let c = deepClone(a);
+    delete c.spritemap
     if(cachedb64.dirty){
         cachedb64.dirty = false;
-        cachedb64.value = img2b64(a.spritemap);
-    }
-    c.spritemap = cachedb64.value;
+        a.spritemap.onload = () => {
+            console.log('filthy bitch')
+            cachedb64.value = img2b64(a.spritemap);
+            console.log(cachedb64)
+            // c.spritemap = cachedb64.value;
+            // localStorage.setItem("project", JSON.stringify(c));
+            ldb.set('spritemap', cachedb64.value)
+        }
+    } 
+    // c.spritemap = cachedb64.value;
     localStorage.setItem("project", JSON.stringify(c));
 })
 

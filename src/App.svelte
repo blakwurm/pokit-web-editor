@@ -5,6 +5,8 @@
 import { MapCanvas } from './MapCanvas';
 import DesktopView from './DesktopView.svelte'
 import { appdata } from './stores';
+import './localStorageDB.js'
+
 
 	let canv = document.createElement('canvas')
 	canv.height = 300

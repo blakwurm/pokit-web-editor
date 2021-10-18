@@ -73,7 +73,7 @@ export function deepClone(o: any): any {
   }
   let r = {} as any;
   for(let [k,v] of Object.entries(o)) {
-    if(typeof v === "object") r[k] = deepClone(v);
+    if(typeof v === "object" && v) r[k] = deepClone(v);
     else r[k] = v;
   }
   return r;
