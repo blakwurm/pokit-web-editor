@@ -26,7 +26,7 @@ export class MapCanvas {
     scroll: Vector;
     depth: number;
     last: Vector;
-    mDown: boolean;
+    mDown: boolean
     gridX: number;
     gridY: number;
     snapX: number;
@@ -524,11 +524,13 @@ export class MapCanvas {
         center = util.pokit2canvas(this.ctx.canvas, center);
         let hBounds = util.vectorDivide(bounds, {x:2,y:2})
         let org = util.vectorAdd(center, hBounds);
-        org = util.vectorSub(org, {x:5,y:5});
-        this.ctx.fillRect(org.x,org.y, 10, 10);
+        let drawOrg = util.vectorSub(org, {x:5,y:5});
+        let touchOrg = util.rotateVector(org, resolved.components.__transform.globalRotation, center);
+        touchOrg = util.vectorSub(touchOrg, {x:5,y:5})
+        this.ctx.fillRect(drawOrg.x,drawOrg.y, 10, 10);
         this.touchZones.push({
             priority: Infinity,
-            origin: util.rotateVector(org, resolved.components.__transform.globalRotation, center),
+            origin: touchOrg,
             bounds: {x:10,y:10},
             rotation: resolved.components.__transform.globalRotation,
             callback: ()=>{
@@ -567,9 +569,12 @@ export class MapCanvas {
             y: center.y - 5
         }
         this.ctx.fillRect(org.x,org.y, 10, 10);
+        org = util.vectorAdd(org, {x:5,y:5})
+        org = util.rotateVector(org, resolved.components.__transform.globalRotation, center);
+        org = util.vectorSub(org, {x:5,y:5});
         this.touchZones.push({
             priority: Infinity,
-            origin: util.rotateVector(org, resolved.components.__transform.globalRotation, center),
+            origin: org,
             bounds: {x:10,y:10},
             rotation: resolved.components.__transform.globalRotation,
             callback: ()=>{
@@ -608,9 +613,12 @@ export class MapCanvas {
             y: center.y + hBounds.y - 5 
         }
         this.ctx.fillRect(org.x,org.y, 10, 10);
+        org = util.vectorAdd(org, {x:5,y:5})
+        org = util.rotateVector(org, resolved.components.__transform.globalRotation, center);
+        org = util.vectorSub(org, {x:5,y:5});
         this.touchZones.push({
             priority: Infinity,
-            origin: util.rotateVector(org, resolved.components.__transform.globalRotation, center),
+            origin: org,
             bounds: {x:10,y:10},
             rotation: resolved.components.__transform.globalRotation,
             callback: ()=>{
@@ -641,8 +649,8 @@ export class MapCanvas {
         center = util.vectorSub(center, this.scroll);
         center = util.pokit2canvas(this.ctx.canvas, center);
         let pos = util.screen2canvas(this.ctx.canvas, e);
-        pos = util.vectorAdd(pos, this.scroll);
         pos = util.rotateVector(pos, -resolved.components.__transform.globalRotation, center);
+        console.log(center,pos);
         let scale = resolved.components.identity.bounds;
         let dif = util.vectorSub(pos, center);
         scale = util.vectorDivide(dif, scale);
