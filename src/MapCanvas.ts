@@ -564,7 +564,7 @@ export class MapCanvas {
         let hBounds = util.vectorDivide(bounds, {x:2,y:2})
         let org = {
             x: center.x + hBounds.x - 5,
-            y: center.y 
+            y: center.y - 5
         }
         this.ctx.fillRect(org.x,org.y, 10, 10);
         this.touchZones.push({
@@ -604,7 +604,7 @@ export class MapCanvas {
         center = util.pokit2canvas(this.ctx.canvas, center);
         let hBounds = util.vectorDivide(bounds, {x:2,y:2})
         let org = {
-            x: center.x,
+            x: center.x - 5,
             y: center.y + hBounds.y - 5 
         }
         this.ctx.fillRect(org.x,org.y, 10, 10);

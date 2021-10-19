@@ -8,7 +8,7 @@ export default class ImmerStore<T> implements Writable<T> {
   private states: T[];
   private index = 0;
   constructor(value: T) {
-    this.states = [produce(value, (d)=>value) as T];
+    this.states = [produce(value, (d)=>value as Draft<T>) as T];
     this.subs = new Set();
   }
   get currentState() {

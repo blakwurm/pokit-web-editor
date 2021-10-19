@@ -7,3 +7,12 @@ interface LocalDataBase {
 }
 
 declare let ldb: LocalDataBase
+
+declare function acquireVsCodeApi(): {
+    postMessage: (msg: any)=>void
+}
+
+declare var __pokit_state: {
+    state: any;
+    spritemap: string;
+}
