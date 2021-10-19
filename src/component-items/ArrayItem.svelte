@@ -7,6 +7,10 @@
   import ColorPicker from './ColorPicker.svelte'
 import { iterate_enum, ValueType } from "../stores";
   export let store: NestedStore<any[]>
+  let storeR = store.drill<number>(0);
+  let storeG = store.drill<number>(1);
+  let storeB = store.drill<number>(2);
+  let storeA = store.drill<number>(3);
 
 
   let map = {
@@ -57,7 +61,7 @@ import { iterate_enum, ValueType } from "../stores";
   }
 </script>
 {#if store.key.toString().toLocaleLowerCase().endsWith('color')}
-  <ColorPicker bind:r={$store[0]} bind:g={$store[1]} bind:b={$store[2]} bind:a={$store[3]}></ColorPicker>
+  <ColorPicker bind:r={$storeR} bind:g={$storeG} bind:b={$storeB} bind:a={$storeA}></ColorPicker>
 {:else}
 <div class="arraycontainer">
   <div class="nameo">{store.key}</div>

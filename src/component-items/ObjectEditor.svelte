@@ -34,14 +34,25 @@ import { deepClone } from "../utils";
   }
   function additem() {
     if(key.toLocaleLowerCase().endsWith('color')) {
-      $store[key] = [0,0,0,0];
+      store.update(s=>{
+        s[key] = [255,0,255,255];
+        return s;
+      })
       return;
     }
-    $store[key]=valueMap[type];
+    store.update(s=>{
+      s[key]=valueMap[type];
+      return s;
+    })
   }
   function addParentOverride(key,value) {
     let v = typeof value==="object" ? deepClone(value) : value;
-    return ()=>$store[key] = v;
+    return ()=>{
+      store.update(s=>{
+        s[key] = v;
+        return s;
+      })
+    }
   }
   function getParentOverrideString(key,value?) {
     let suffix = value !== undefined ? `(${value})` : "";

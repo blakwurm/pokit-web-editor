@@ -51,7 +51,7 @@ export default class NestedStore<T> implements Writable<T> {
     });
   }
 
-  drill(...path: Key[]) {
-    return new NestedStore(this.base, ...this.path, ...path);
+  drill<T>(...path: Key[]) {
+    return new NestedStore<T>(this.base, ...this.path, ...path);
   }
 }

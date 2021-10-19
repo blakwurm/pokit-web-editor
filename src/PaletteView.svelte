@@ -10,20 +10,30 @@ import { applyInheritance, resolveLineage } from "./MapCanvas";
     export let desktop: boolean = false;
 
     function cloneStub(name:string) {
-        let newStub = deepClone($appdata.entities[name]);
-        $entities[key] = newStub;
+        let newStub = deepClone($entities[name]);
+        entities.update(e=>{
+            e[key] = newStub;
+            return e;
+        })
+        console.log("equality",$entities[key]===$entities[name])
     }
     function inheritStub(name:string) {
-        $entities[key] = {
-            inherits: [name],
-            components: {}
-        }
+        entities.update(e=>{
+            e[key] = {
+                inherits: [name],
+                components: {}
+            }
+            return e;
+        });
     }
     function newStub() {
-        $entities[key] = {
-            inherits:[],
-            components:{}
-        }
+        entities.update(e=>{
+            e[key] = {
+                inherits: [],
+                components: {}
+            }
+            return e;
+        })
     }
     function enumerate(obj: pojo) {
         let clone = deepClone(obj);

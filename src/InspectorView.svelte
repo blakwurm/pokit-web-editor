@@ -38,7 +38,16 @@ import ArrayItem from "./component-items/ArrayItem.svelte";
   //   };
   // }
   function addComponent() {
-    $nest[key] = {};
+    nest.update(n=>{
+      n[key] = {};
+      return n;
+    })
+  }
+  function overrideParent(key: string) {
+    nest.update(n=>{
+      n[key] = {};
+      return n;
+    })
   }
 </script>
 
@@ -55,10 +64,10 @@ import ArrayItem from "./component-items/ArrayItem.svelte";
       <ObjectEditor store={nest.drill(c)} proto={prototype.components[c]} />
     </div>
   {:else}
-    <button on:click={()=>$nest[c]={}}>Override parent:{c}</button>
+    <button on:click={()=>overrideParent(c)}>Override parent:{c}</button>
   {/if}
 {/each}
-<button on:click={()=>addComponent()}>Add Component:</button>
+<button on:click={addComponent}>Add Component:</button>
 <input type="text" bind:value={key} />
 <!-- <ul class="componentlist">
   {#each Object.entries($currentBrush.components) as [name,component]}
