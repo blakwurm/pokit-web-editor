@@ -165,6 +165,9 @@ function onMessage(event: MessageEvent<VsCodeMessage>) {
         case "entity_delete":
             appdata.update(a=>{
                 delete a.entities[msg.name];
+                for(let s of Object.values(a.scenes)) {
+                    delete s.entities[msg.name];
+                }
                 return a;
             })
             break;
