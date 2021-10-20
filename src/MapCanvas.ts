@@ -747,6 +747,7 @@ export function deepClone(o: any): any {
 }
 
 export function resolveLineage(stub: string, entities: Record<string,EntityStub>) {
+    if(!(stub in entities)) return [];
     let order = [stub]
     let obj = entities[stub];
 
