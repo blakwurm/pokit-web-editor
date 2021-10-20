@@ -180,6 +180,11 @@ function onMessage(event: MessageEvent<VsCodeMessage>) {
                 return a;
             })
             break;
+        case "scene_transition":
+            appdata.update(a=>{
+                a.currentScene = msg.name;
+                return a;
+            })
     }
 }
 
@@ -193,6 +198,8 @@ export let currentBrush = new NestedStore<string>(appdata, "currentBrush")
 
 export let currentTool = new NestedStore<ToolType>(appdata, "currentTool");
 
-export let entities = new NestedStore<EntityStub[]>(appdata, "entities")
+export let entities = new NestedStore<Record<string,EntityStub>>(appdata, "entities")
 
-export let scenes = new NestedStore<SceneStub[]>(appdata, "scenes")
+export let scenes = new NestedStore<Record<string,SceneStub>>(appdata, "scenes")
+
+export let inspecting = new NestedStore<[string,string,number]>(appdata, "inspecting");

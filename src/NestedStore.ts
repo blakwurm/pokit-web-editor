@@ -24,14 +24,14 @@ export default class NestedStore<T> implements Writable<T> {
   }
 
   private get(b: pojo): T | undefined {
-    let ref = this.getParent(b) || [];
-    return ref[this.path[this.path.length-1]];
+    let ref = this.getParent(b) || {};
+    return ref[this.key];
   }
 
   private getParent(b: pojo): pojo {
     let ref = b;
     for(let i = 0; i < this.path.length-1; i++) {
-      ref = ref[this.path[i]];
+      ref = ref[this.path[i]] || {};
     }
     return ref;
   }

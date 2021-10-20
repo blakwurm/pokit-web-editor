@@ -72,9 +72,13 @@ import { deepClone } from "../utils";
       {/if}
       <button on:click={()=>deletekey(k)}>X</button>
     {:else if t==='object' && !Array.isArray(v)}
-      <button on:click={addParentOverride(k,{})}>{getParentOverrideString(k)}</button>
+      <div class="overridecontainer">
+        <button on:click={addParentOverride(k,{})}>{getParentOverrideString(k)}</button>
+      </div>
     {:else}
-      <button on:click={addParentOverride(k,v)}>{getParentOverrideString(k,v)}</button>
+      <div class="overridecontainer">
+        <button on:click={addParentOverride(k,v)}>{getParentOverrideString(k,v)}</button>
+      </div>
     {/if}
   {/each}
   <div class="additioner">
@@ -98,5 +102,9 @@ import { deepClone } from "../utils";
     text-decoration: underline;
     color: black;
     background-color: white;
+  }
+  .overridecontainer {
+    border: 3px solid purple;
+    margin: 3px;
   }
 </style>

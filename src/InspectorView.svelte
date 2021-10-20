@@ -1,11 +1,12 @@
 <script lang="ts">
   import NestedStore from "./NestedStore"
   import ObjectEditor from "./component-items/ObjectEditor.svelte"
-  import {appdata, entities} from "./stores"
-  import { deepClone, defaultParentNoGlobals } from "./utils";
+  import {appdata, currentBrush, entities} from "./stores"
+  import { deepClone, deepMerge, defaultParentNoGlobals } from "./utils";
   import { applyInheritance, resolveLineage } from "./MapCanvas"
-import type { EntityStub } from "./pokit.types";
-import ArrayItem from "./component-items/ArrayItem.svelte";
+  import type { EntityStub, Identity } from "./pokit.types";
+  import ArrayItem from "./component-items/ArrayItem.svelte";
+  import InstanceEditor from "./component-items/InstanceEditor.svelte";
 
   console.log(appdata);
   let nest_root = new NestedStore(appdata, "entities", $appdata.currentBrush);
@@ -51,12 +52,12 @@ import ArrayItem from "./component-items/ArrayItem.svelte";
   }
 </script>
 
-<!-- {#if $inspecting} 
-  <h3>Selected In Scene</h3>
-  <ObjectEditor store={inspecting}></ObjectEditor>
-{/if} -->
-<h3>Active Brush</h3>
-<ArrayItem store={inherits} />
+<InstanceEditor />
+
+<h3>Active Brush: {$currentBrush}</h3>
+<div class="inheritcontainer">
+  <ArrayItem store={inherits} />
+</div>
 {#each Object.entries(prototype.components) as [c,v]}
   {#if $nest[c]}
     <!-- <h4>{c.toLocaleUpperCase()}</h4> -->
@@ -64,7 +65,9 @@ import ArrayItem from "./component-items/ArrayItem.svelte";
       <ObjectEditor store={nest.drill(c)} proto={prototype.components[c]} />
     </div>
   {:else}
-    <button on:click={()=>overrideParent(c)}>Override parent:{c}</button>
+    <div class="overridecontainer">
+      <button on:click={()=>overrideParent(c)}>Override parent:{c}</button>
+    </div>
   {/if}
 {/each}
 <button on:click={addComponent}>Add Component:</button>
@@ -81,6 +84,14 @@ import ArrayItem from "./component-items/ArrayItem.svelte";
 <style>
   .componentcontainer {
     border: 3px solid blue;
+    margin: 3px;
+  }
+  .overridecontainer {
+    border: 3px solid purple;
+    margin: 3px;
+  }
+  .inheritcontainer {
+    border: 3px solid green;
     margin: 3px;
   }
 </style>
