@@ -26,7 +26,6 @@
   $:lin.push("__DEFAULT_PARENT__")
   $:prototype = applyInheritance(lin, $appdata.entities) as EntityStub;
   let key: string = "newcomp"
-  let inherits = nest_root.drill("inherits") as NestedStore<string[]>
 
   // $:inspecting = new NestedStore(appdata, 'scenes', $appdata.inspecting[0], 'entities', $appdata.inspecting[1], $appdata.inspecting[2])
   // function buildMutable(v: any) {
@@ -56,13 +55,13 @@
 
 <h3>Active Brush: {$currentBrush}</h3>
 <div class="inheritcontainer">
-  <ArrayItem store={inherits} />
+  <ArrayItem store={nest_root.drill("inherits")} />
 </div>
 {#each Object.entries(prototype.components) as [c,v]}
   {#if $nest[c]}
     <!-- <h4>{c.toLocaleUpperCase()}</h4> -->
     <div class="componentcontainer">
-      <ObjectEditor store={nest.drill(c)} proto={prototype.components[c]} />
+      <ObjectEditor store={nest.drill(c)} proto={v} />
     </div>
   {:else}
     <div class="overridecontainer">

@@ -779,16 +779,16 @@ function addMeta(e: EntityStub, index: number, stub: string) {
     let i = e.components.identity as Identity;
     let transform = {
         get globalPosition() {
-            let parent = parents[e.components.identity.parent || "__DEFAULT_PARENT__"].components.__transform as Transform;
+            let parent = (parents[e.components.identity.parent] || parents["__DEFAULT_PARENT__"]).components.__transform as Transform;
             let scaledPos = util.vectorMultiply(i.position, parent.globalScale);
             return util.vectorAdd(util.rotateVector(scaledPos, parent.globalRotation), parent.globalPosition);
         },
         get globalRotation() {
-            let parent = parents[e.components.identity.parent || "__DEFAULT_PARENT__"].components.__transform as Transform;
+            let parent = (parents[e.components.identity.parent] || parents["__DEFAULT_PARENT__"]).components.__transform as Transform;
             return i.rotation + parent.globalRotation;
         },
         get globalScale() {
-            let parent = parents[e.components.identity.parent || "__DEFAULT_PARENT__"].components.__transform as Transform;
+            let parent = (parents[e.components.identity.parent] || parents["__DEFAULT_PARENT__"]).components.__transform as Transform;
             return util.vectorMultiply(i.scale, parent.globalScale);
         },
         get globalBounds() {
@@ -796,18 +796,18 @@ function addMeta(e: EntityStub, index: number, stub: string) {
             return util.vectorMultiply(i.bounds, transform.globalScale);
         },
         revPosition: (pos: Vector) => {
-            let parent = parents[e.components.identity.parent || "__DEFAULT_PARENT__"].components.__transform as Transform;
+            let parent = (parents[e.components.identity.parent] || parents["__DEFAULT_PARENT__"]).components.__transform as Transform;
             let vec = util.vectorSub(pos, parent.globalPosition);
             vec = util.rotateVector(vec, -parent.globalRotation);
             vec = util.vectorDivide(vec, parent.globalScale);
             return vec;
         },
         revRotation: (rot: number) => {
-            let parent = parents[e.components.identity.parent || "__DEFAULT_PARENT__"].components.__transform as Transform;
+            let parent = parents[e.components.identity.parent].components.__transform as Transform;
             return rot-parent.globalRotation;
         },
         revScale: (scale: Vector) => {
-            let parent = parents[e.components.identity.parent || "__DEFAULT_PARENT__"].components.__transform as Transform;
+            let parent = (parents[e.components.identity.parent] || parents["__DEFAULT_PARENT__"]).components.__transform as Transform;
             return util.vectorDivide(scale, parent.globalScale);
         }
     };
