@@ -1,9 +1,9 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte'
     import ModalBase from './ModalBase.svelte'
-import type { Vector } from './pokit.types';
+    import type { Vector } from './pokit.types';
     import {spritemap} from './stores'
-import { vectorAdd, vectorDist, vectorDivide, vectorMultiply, VectorOne, vectorSub, VectorZero } from './utils';
+    import { vectorAdd, vectorDist, vectorDivide, vectorMultiply, VectorOne, vectorSub, VectorZero } from './utils';
 
     export let visible;
 

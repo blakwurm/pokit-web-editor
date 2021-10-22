@@ -4,20 +4,18 @@
   import type { Identity, Vector } from "../pokit.types";
   import SpritePickerModal from "../SpritePickerModal.svelte";
 
-
-  export let sprite: NestedStore<{source:Vector}>;
-  export let identity: NestedStore<Identity>;
+  export let store: Record<string,any>;
   
-  if(!$identity) $identity = {};
-  let bounds = identity.drill<Vector>("bounds");
-
-  let source = sprite.drill<Vector>("source");
   let visible = false;
 
   function onSelectSprite(e: any) {
-    if(!$identity) $identity={};
-    $source = e.detail.source;
-    $bounds = e.detail.bounds;
+    store.update(c=>{
+      if(!c.identity)c.identity = {};
+      console.log(e);
+      c.identity.bounds = e.detail.bounds;
+      c.sprite.source = e.detail.source;
+      return c;
+    })
   }
 </script>
 

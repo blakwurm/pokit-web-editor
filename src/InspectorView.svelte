@@ -63,7 +63,7 @@ import SpritePicker from "./component-items/SpritePicker.svelte";
     <!-- <h4>{c.toLocaleUpperCase()}</h4> -->
     <div class="componentcontainer">
       {#if c==="sprite"}
-        <SpritePicker sprite={nest.drill(c)} identity={nest.drill('identity')}/>
+        <SpritePicker store={nest}/>
       {:else}
         <ObjectEditor store={nest.drill(c)} proto={v} />
       {/if}
