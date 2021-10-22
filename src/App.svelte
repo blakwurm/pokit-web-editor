@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SpritePickerModal from './SpritePickerModal.svelte';
 	import MobileView from './MobileView.svelte'
 	export let name: string;
 	import * as util from './util.js'
@@ -20,6 +21,8 @@ import './localStorageDB.js'
 	let innerHeight = window.innerHeight
 
 </script>
+
+<SpritePickerModal></SpritePickerModal>
 
 <svelte:window bind:innerHeight bind:innerWidth />
 
