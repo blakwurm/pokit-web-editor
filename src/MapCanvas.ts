@@ -803,7 +803,7 @@ function addMeta(e: EntityStub, index: number, stub: string) {
             return vec;
         },
         revRotation: (rot: number) => {
-            let parent = parents[e.components.identity.parent].components.__transform as Transform;
+            let parent = (parents[e.components.identity.parent] || parents["__DEFAULT_PARENT__"]).components.__transform as Transform;
             return rot-parent.globalRotation;
         },
         revScale: (scale: Vector) => {
