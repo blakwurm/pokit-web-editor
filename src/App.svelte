@@ -22,8 +22,6 @@ import './localStorageDB.js'
 
 </script>
 
-<SpritePickerModal></SpritePickerModal>
-
 <svelte:window bind:innerHeight bind:innerWidth />
 
 {#if innerWidth < 501}

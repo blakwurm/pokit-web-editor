@@ -7,6 +7,7 @@
   import type { EntityStub, Identity } from "./pokit.types";
   import ArrayItem from "./component-items/ArrayItem.svelte";
   import InstanceEditor from "./component-items/InstanceEditor.svelte";
+import SpritePicker from "./component-items/SpritePicker.svelte";
 
   console.log(appdata);
   let nest_root = new NestedStore(appdata, "entities", $appdata.currentBrush);
@@ -61,7 +62,11 @@
   {#if $nest[c]}
     <!-- <h4>{c.toLocaleUpperCase()}</h4> -->
     <div class="componentcontainer">
-      <ObjectEditor store={nest.drill(c)} proto={v} />
+      {#if c==="sprite"}
+        <SpritePicker sprite={nest.drill(c)} identity={nest.drill('identity')}/>
+      {:else}
+        <ObjectEditor store={nest.drill(c)} proto={v} />
+      {/if}
     </div>
   {:else}
     <div class="overridecontainer">
