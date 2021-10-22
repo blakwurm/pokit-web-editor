@@ -50,6 +50,15 @@ import SpritePicker from "./component-items/SpritePicker.svelte";
       return n;
     })
   }
+  function deleteComponent(key: string) {
+    return function() {
+      console.log(key)
+      nest.update(a=>{
+        delete a[key]
+        return a
+      })
+    }
+  }
 </script>
 
 <InstanceEditor />
@@ -62,6 +71,7 @@ import SpritePicker from "./component-items/SpritePicker.svelte";
   {#if $nest[c]}
     <!-- <h4>{c.toLocaleUpperCase()}</h4> -->
     <div class="componentcontainer">
+      <button class="closer" on:click={deleteComponent(c)}>&#10006;</button>
       {#if c==="sprite"}
         <SpritePicker store={nest}/>
       {:else}
@@ -97,5 +107,12 @@ import SpritePicker from "./component-items/SpritePicker.svelte";
   .inheritcontainer {
     border: 3px solid green;
     margin: 3px;
+  }
+  .closer {
+    float: right;
+    margin: 4px;
+    color: black;
+    background-color: transparent;
+    border:none;
   }
 </style>

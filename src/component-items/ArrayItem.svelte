@@ -75,7 +75,7 @@ import { iterate_enum, ValueType } from "../stores";
     {/if}
     {#if thingy.k}<button on:click={()=>moveup(thingy.k)}>▲</button>{/if}
     {#if thingy.k < $store.length-1}<button on:click={()=>movedown(thingy.k)}>▼</button>{/if}
-    <button on:click={()=>delArrItem(thingy.k)}>X</button>
+    <button on:click={()=>delArrItem(thingy.k)}>&#10006;</button>
   </li>
   {/each}
 

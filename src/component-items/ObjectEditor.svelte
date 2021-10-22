@@ -70,7 +70,7 @@ import { deepClone } from "../utils";
       {:else}
         <svelte:component this={map[t]} store={s} label={k} />
       {/if}
-      <button on:click={()=>deletekey(k)}>X</button>
+      <button on:click={()=>deletekey(k)}>&#10006;</button>
     {:else if t==='object' && !Array.isArray(v)}
       <div class="overridecontainer">
         <button on:click={addParentOverride(k,{})}>{getParentOverrideString(k)}</button>

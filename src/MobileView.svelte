@@ -4,6 +4,7 @@
 	import InspectorView from './InspectorView.svelte'
 	import PaletteView from './PaletteView.svelte'
 	import FileView from './FileView.svelte'
+	import TileMapEditor from './TileMapEditor.svelte'
     import type { MapCanvas } from "./MapCanvas";
     import * as util from './util'
 
@@ -16,7 +17,8 @@
 		file: FileView,
 		map: MapView,
 		inspector: InspectorView,
-		palette: PaletteView
+		palette: PaletteView,
+		tilemap: TileMapEditor
 	}
 
 	let activeView = location.hash.substr(1) || 'file'
