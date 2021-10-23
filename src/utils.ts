@@ -171,6 +171,27 @@ export function vectorDist(vec1: Vector, vec2: Vector) {
     )
 }
 
+export function vectorRound(vec: Vector) {
+  return {
+    x: Math.round(vec.x),
+    y: Math.round(vec.y)
+  }
+}
+
+export function vectorFloor(vec: Vector) {
+  return {
+    x: Math.floor(vec.x),
+    y: Math.floor(vec.y)
+  }
+}
+
+export function vectorCeil(vec: Vector) {
+  return {
+    x: Math.ceil(vec.x),
+    y: Math.ceil(vec.y)
+  }
+}
+
 export function VectorOne(): Vector {
   return {
     x: 1,
@@ -432,8 +453,8 @@ export let screenOffset = {x:20,y:20};
  * @returns point transformed to canvas-space
  */
 export function screen2canvas(c: HTMLCanvasElement, p: Vector) {
-  let translated = vectorSub(p, {x:c.clientLeft,y:c.clientTop});
-  translated = vectorSub(translated, screenOffset);
+  let org = vectorRound(c.getBoundingClientRect());
+  let translated = vectorSub(p, org);
   let scaled = vectorDivide(translated, {x:c.clientWidth, y:c.clientHeight});
   return vectorMultiply(scaled, {x:c.width, y:c.height});
 }
@@ -446,8 +467,8 @@ export function screen2canvas(c: HTMLCanvasElement, p: Vector) {
  */
 export function canvas2screen(c: HTMLCanvasElement, p: Vector) {
   let scaled = vectorDivide(p, {x:c.width, y:c.height});
-  let translated = vectorAdd(scaled, {x:c.clientLeft, y:c.clientTop})
-  translated = vectorAdd(translated, screenOffset);
+  let org = vectorRound(c.getBoundingClientRect());
+  let translated = vectorAdd(scaled, org);
   return vectorMultiply(translated, {x:c.clientWidth, y:c.clientHeight});
 }
 

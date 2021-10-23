@@ -6,6 +6,7 @@
     import { vectorAdd, vectorDist, vectorDivide, vectorMultiply, VectorOne, vectorSub, VectorZero } from './utils';
 
     export let visible;
+    export let singleSelect = false;
 
     let spritesize = {x:32,y:32};
 
@@ -50,7 +51,7 @@
 
 
     function onClick(e: PointerEvent) {
-        if(vectorDist(start, e) > 5) return;
+        if(Math.abs(vectorDist(start, e)) > 5) return;
         let org = canvas.getBoundingClientRect();
         org.x = Math.round(org.x);
         org.y = Math.round(org.y);
@@ -61,6 +62,7 @@
         if(firstclick) {
             Object.assign(bounds,spritesize);
             source = sprite;
+            if(singleSelect) firstclick = false;
         } else {
             let spriteMin = {
                 x: sprite.x < source.x ? sprite.x : source.x,
