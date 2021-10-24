@@ -49,7 +49,7 @@ export class MapCanvas {
         spritemap.subscribe(this.updateSprites.bind(this));
         this.touchZones = [];
 
-        c.addEventListener('mousedown',(e)=>{
+        c.addEventListener('pointerdown',(e)=>{
             e.preventDefault();
             this.last = util.screen2canvas(c, e);
             this.mDown = true;
@@ -86,8 +86,8 @@ export class MapCanvas {
                     })
             }
         });
-        c.addEventListener('mouseup', ()=>this.mDown=false);
-        c.addEventListener('mousemove', (e)=>{
+        c.addEventListener('pointerup', ()=>this.mDown=false);
+        c.addEventListener('pointermove', (e)=>{
             if(this.state.currentTool !== ToolType.PAN || !this.mDown) return;
             let scaled = util.screen2canvas(c, e);
             let delta = util.vectorSub(this.last, scaled);
@@ -298,6 +298,7 @@ export class MapCanvas {
         let pos = util.pokit2canvas(this.ctx.canvas, transform.globalPosition, transform.globalBounds);
         pos  = util.vectorSub(pos, this.scroll);
         let source = util.vectorMultiply(sprite.source, identity.bounds);
+        source = util.vectorCeil(source);
         this.ctx.drawImage(this.sprites, source.x, source.y, identity.bounds.x, identity.bounds.y, pos.x, pos.y, transform.globalBounds.x, transform.globalBounds.y);
         return [pos, transform.globalBounds];
     }
@@ -435,7 +436,7 @@ export class MapCanvas {
                             return a;
                         })
                         appdata.filter(a=>!a.handling);
-                        this.ctx.canvas.removeEventListener("mousemove", cb);
+                        this.ctx.canvas.removeEventListener("pointermove", cb);
                         return;
                     }
                     let pos = util.screen2pokit(this.ctx.canvas, e);
@@ -449,7 +450,7 @@ export class MapCanvas {
                         return a;
                     });
                 }
-                this.ctx.canvas.addEventListener("mousemove", cb)
+                this.ctx.canvas.addEventListener("pointermove", cb)
             }
         });
     }
@@ -488,7 +489,7 @@ export class MapCanvas {
                                 return a;
                             })
                             appdata.filter(a=>!a.handling)
-                            this.ctx.canvas.removeEventListener("mousemove", cb);
+                            this.ctx.canvas.removeEventListener("pointermove", cb);
                             return;
                         }
                         let [scene,stub,index] = this.state.inspecting;
@@ -509,7 +510,7 @@ export class MapCanvas {
                             return a;
                         })
                     }
-                    this.ctx.canvas.addEventListener("mousemove", cb)
+                    this.ctx.canvas.addEventListener("pointermove", cb)
                 }
             }
         )
@@ -541,7 +542,7 @@ export class MapCanvas {
                             return a;
                         })
                         appdata.filter(a=>!a.handling);
-                        this.ctx.canvas.removeEventListener("mousemove", cb);
+                        this.ctx.canvas.removeEventListener("pointermove", cb);
                         return;
                     }
                     let scale = this.calculateScale(resolved, e);
@@ -551,7 +552,7 @@ export class MapCanvas {
                         return a;
                     })
                 }
-                this.ctx.canvas.addEventListener("mousemove", cb);
+                this.ctx.canvas.addEventListener("pointermove", cb);
             }
         })
     }
@@ -585,7 +586,7 @@ export class MapCanvas {
                             return a;
                         })
                         appdata.filter(a=>!a.handling);
-                        this.ctx.canvas.removeEventListener("mousemove", cb);
+                        this.ctx.canvas.removeEventListener("pointermove", cb);
                         return;
                     }
                     let scale = this.calculateScale(resolved, e);
@@ -595,7 +596,7 @@ export class MapCanvas {
                         return a;
                     })
                 }
-                this.ctx.canvas.addEventListener("mousemove", cb);
+                this.ctx.canvas.addEventListener("pointermove", cb);
             }
         })
     }
@@ -629,7 +630,7 @@ export class MapCanvas {
                             return a;
                         })
                         appdata.filter(a=>!a.handling);
-                        this.ctx.canvas.removeEventListener("mousemove", cb);
+                        this.ctx.canvas.removeEventListener("pointermove", cb);
                         return;
                     }
                     let scale = this.calculateScale(resolved, e);
@@ -639,7 +640,7 @@ export class MapCanvas {
                         return a;
                     })
                 }
-                this.ctx.canvas.addEventListener("mousemove", cb);
+                this.ctx.canvas.addEventListener("pointermove", cb);
             }
         })
     }
