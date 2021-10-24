@@ -1,8 +1,7 @@
 <script lang="ts">
-import { onMount } from "svelte";
-import {spritemap} from './stores'
-import { vectorMultiply } from "./utils";
-
+    import { onMount } from "svelte";
+    import {spritemap} from './stores'
+    import { vectorMultiply } from "./utils";
 
     export let width: number
     export let height: number

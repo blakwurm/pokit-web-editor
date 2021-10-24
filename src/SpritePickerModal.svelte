@@ -3,7 +3,7 @@
     import ModalBase from './ModalBase.svelte'
     import type { Vector } from './pokit.types';
     import {spritemap} from './stores'
-    import { vectorAdd, vectorDist, vectorDivide, vectorMultiply, VectorOne, vectorSub, VectorZero } from './utils';
+    import { vectorAdd, vectorDist, vectorDivide, vectorFloor, vectorMultiply, VectorOne, vectorSub, VectorZero } from './utils';
 
     export let visible;
     export let singleSelect = false;
@@ -30,9 +30,11 @@
     function finalSelect() {
         dispatch('select', {source: Object.assign({},source), bounds: Object.assign({},bounds)})
     }
+
     $:if(visible) {
         firstclick = true;
     }
+
     $:{
         if(canvas && visible) {
             canvas = document.getElementById("spritepicker_canvas") as HTMLCanvasElement;
@@ -76,9 +78,8 @@
             let dims = vectorSub(spriteMax, spriteMin);
             dims = vectorAdd(dims, VectorOne());
             dims = vectorMultiply(dims, spritesize);
-            console.log(src);
+            dims = vectorFloor(dims);
             src = vectorDivide(src, dims);
-            console.log(src);
             source = src;
             bounds = dims;
         }
