@@ -8,7 +8,7 @@ const POKIT_DIMS = {
     y: 320
 }
 
-interface TouchZone {
+export interface TouchZone {
     entity?: EntityStub;
     priority: number;
     origin: Vector;
@@ -18,6 +18,7 @@ interface TouchZone {
 }
 
 let parents = {} as Record<string,EntityStub>;
+let children = [] as EntityStub[];
 export class MapCanvas {
     ctx: CanvasRenderingContext2D;
     state: AppData;
@@ -166,8 +167,8 @@ export class MapCanvas {
     }
 
     updateState(a: AppData) {
-        this.state = a;
-        this.scene = a.scenes[a.currentScene];
+        this.state = deepClone(a);
+        this.scene = this.state.scenes[a.currentScene];
         this.dirty = true;
     }
 
@@ -184,6 +185,7 @@ export class MapCanvas {
         this.ctx.clearRect(0,0,this.ctx.canvas.width, this.ctx.canvas.height);
         let entities: EntityStub[] = [];
         let instances: Record<string,EntityStub[]> = {};
+        children = [];
         for(let [s, a] of Object.entries(this.scene.entities)) {
             instances[s] = this.mergeEntities(s,a);
             entities.push(...instances[s])
@@ -191,7 +193,8 @@ export class MapCanvas {
         entities.forEach((x)=>parents[x.components.identity.id] = x);
         entities = entities.filter(e=>e.components.identity.z >= this.depth);
         entities.sort((a,b)=>b.components.identity.z-a.components.identity.z);
-        entities.forEach(this.renderEntity.bind(this));
+        entities.forEach((e)=>this.renderEntity(e));
+        children.forEach((e)=>this.renderEntity(e, false));
         this.makeHandles(instances);
         this.renderGrid();
     }
@@ -220,7 +223,7 @@ export class MapCanvas {
     }
 
     mergeEntities(stubId: string, instances: Identity[]) {
-        let entities = deepClone(this.state.entities);
+        let entities = this.state.entities;
         entities["__DEFAULT_PARENT__"] = {
             inherits: [],
             components: {
@@ -231,23 +234,39 @@ export class MapCanvas {
         parents["__DEFAULT_PARENT__"] = entities["__DEFAULT_PARENT__"]
 
         let index = 0;
-        return (<Identity[]>deepClone(instances)).map(i=>{
-            let lineage = resolveLineage(stubId, entities);
-            let identity = i;
-            identity.id = identity.id || stubId + index.toString();
-            entities["__POKIT_IDENTITY__"] = {
-                inherits: [],
-                components: {
-                    identity: i
-                }
-            };
-            lineage.push("__DEFAULT_PARENT__")
-            lineage.unshift("__POKIT_IDENTITY__");
-            return addMeta(applyInheritance(lineage, entities), index++, stubId);
+        return (instances).map(i=>{
+            return this.resolveEntity(i, stubId, index++);
         }) as EntityStub[];
     }
 
-    renderEntity(entity:EntityStub) {
+    resolveEntity(identity: Identity, stub: string, index: number) {
+        identity.id = identity.id || stub + index.toString();
+        let lineage = resolveLineage(stub, this.state.entities);
+        this.state.entities["__POKIT_IDENTITY__"] = {
+            inherits: [],
+            components: {
+                identity
+            }
+        };
+        lineage.push("__DEFAULT_PARENT__")
+        lineage.unshift("__POKIT_IDENTITY__");
+        let e = applyInheritance(lineage, this.state.entities);
+        if(e.children) this.getChildren(e, stub);
+        return addMeta(e, index, stub);
+    }
+
+    getChildren(e: EntityStub, stub: string) {
+        for(let [s,instances] of Object.entries(e.children!)) {
+            let i = 0;
+            for(let instance of instances) {
+                instance.id=`${e.components.identity.id}_${s}${i}`
+                instance.parent = stub;
+                children.push(this.resolveEntity(instance, s, i++));
+            }
+        }
+    }
+
+    renderEntity(entity:EntityStub, selectable = true) {
         let pos: Vector, bounds: Vector;
         let identity = entity.components.identity as Identity;
         let center = entity.components.__transform.globalPosition;
@@ -255,34 +274,32 @@ export class MapCanvas {
         let rot = entity.components.__transform.globalRotation;
         this.rotate(rot, center);
         let prio = 0;
-        if(entity.components.camera) {
-            [pos, bounds] = this.renderCameraEntity(entity);
-            prio = -Infinity;
-        }
-        else if(entity.components.sprite) {
+        
+        if(entity.components.sprite) {
             [pos, bounds] = this.renderSpriteEntity(entity);
-            prio = -(bounds.x*bounds.y);
+        }
+        else if(entity.components.debug) {
+            [pos, bounds] = this.renderDebugEntity(entity);
         }
         else {
-            [pos, bounds] = this.renderGeneralEntity(entity);
-            prio = -(bounds.x*bounds.y);
+            [pos, bounds] = this.renderEmpty(entity);
         }
+        prio = -(bounds.x*bounds.y);
         let [scene,stub,instance] = this.state.inspecting;
         if(scene === this.state.currentScene &&
              stub === entity.components.__meta.stub &&
              instance === entity.components.__meta.index) {
                 this.renderBorder(pos, bounds);
              }
-        this.makeTouchZone(entity, Object.assign({},pos), bounds, entity.components.__transform.globalRotation, prio)
+        if(selectable) this.makeTouchZone(entity, Object.assign({},pos), bounds, entity.components.__transform.globalRotation, prio)
         this.restore();
         pos.y -= 61;
         this.renderLabel(pos, identity.id!);
     }
 
-    renderCameraEntity(entity: EntityStub) {
+    renderEmpty(entity: EntityStub) {
         let transform = entity.components.__transform as Transform;
         let bounds = transform.globalBounds;
-        if(entity.components.camera.isMainCamera) bounds = POKIT_DIMS;
         let pos = util.pokit2canvas(this.ctx.canvas, transform.globalPosition, bounds);
         pos = util.vectorSub(pos, this.scroll);
         this.ctx.strokeStyle = "black";
@@ -303,7 +320,7 @@ export class MapCanvas {
         return [pos, transform.globalBounds];
     }
 
-    renderGeneralEntity(entity: EntityStub) {
+    renderDebugEntity(entity: EntityStub) {
         if(entity.components.debug) {
             let color = entity.components.debug.color as [number,number,number,number] ||
             [255,0,0,255];

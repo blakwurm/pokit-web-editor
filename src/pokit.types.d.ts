@@ -18,7 +18,8 @@ export interface CartManifest {
   
   export interface EntityStub {
     inherits: string[];
-    components: any;
+    components: { [name:string]: any };
+    children?: { [stub:string]: Identity[] };
     timestamp?: number;
   }
 

@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { onMount } from "svelte";
     import {spritemap} from './stores'
     import { vectorMultiply } from "./utils";
 
