@@ -197,6 +197,17 @@ export class MapCanvas {
         children.forEach((e)=>this.renderEntity(e, false));
         this.makeHandles(instances);
         this.renderGrid();
+        this.drawOrigin();
+    }
+
+    drawOrigin() {
+        let org = util.pokit2canvas(this.ctx.canvas, {x:0,y:0});
+        org = util.vectorSub(org, this.scroll);
+        this.ctx.strokeStyle = "red";
+        this.ctx.lineWidth = 3;
+        this.renderLine(org, util.vectorAdd(org, {x:16,y:0}));
+        this.ctx.strokeStyle = "green";
+        this.renderLine(org, util.vectorSub(org, {x:0,y:16}));
     }
 
     renderdebug() {
