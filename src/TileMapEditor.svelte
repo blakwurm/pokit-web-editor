@@ -49,8 +49,8 @@ import { canvas2pokit, deepClone, pokit2canvas, screen2canvas, vectorAdd, vector
         oldHeight = mapHeight;
         colliders = brush.children || {};
         spriteBounds = {
-            x: tm.tileWidth || spriteBounds.x,
-            y: tm.tileHeight || spriteBounds.y
+            x: tm.tilewidth || spriteBounds.x,
+            y: tm.tileheight || spriteBounds.y
         }
         dirty = true; 
     }
@@ -62,8 +62,8 @@ import { canvas2pokit, deepClone, pokit2canvas, screen2canvas, vectorAdd, vector
             let tm = brush.components.tilemap;
             tm.width = mapWidth;
             tm.tiles = deepClone(map);
-            tm.tileWidth = spriteBounds.x,
-            tm.tileHeight = spriteBounds.y
+            tm.tilewidth = spriteBounds.x,
+            tm.tileheight = spriteBounds.y
             brush.children = deepClone(colliders);
             return a;
         });

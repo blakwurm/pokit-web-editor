@@ -206,3 +206,5 @@ export let entities = new NestedStore<Record<string,EntityStub>>(appdata, "entit
 export let scenes = new NestedStore<Record<string,SceneStub>>(appdata, "scenes")
 
 export let inspecting = new NestedStore<[string,string,number]>(appdata, "inspecting");
+
+export let spriteBounds = writable({x:32,y:32});

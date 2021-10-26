@@ -275,6 +275,9 @@ export class MapCanvas {
         this.rotate(rot, center);
         let prio = 0;
         
+        if(entity.components.tilemap) {
+            [pos, bounds] = this.renderTilemapEntity(entity);
+        }
         if(entity.components.sprite) {
             [pos, bounds] = this.renderSpriteEntity(entity);
         }
@@ -308,16 +311,51 @@ export class MapCanvas {
         return [pos, bounds] 
     }
 
+    renderTilemapEntity(entity: EntityStub) {
+        let transform = entity.components.__transform as Transform;
+        let bounds = transform.globalBounds;
+        let org = util.pokit2canvas(this.ctx.canvas, transform.globalPosition, bounds);
+        let tm = entity.components.tilemap;
+        org = util.vectorSub(org, this.scroll);
+        let width = tm.width * tm.tilewidth;
+        let height = tm.tiles.length/tm.width*tm.tileheight;
+        let canvas = new OffscreenCanvas(width, height);
+        let ctx = canvas.getContext('2d');
+        for(let si in tm.tiles as number[]) {
+            let i = parseInt(si);
+            let x = i%tm.width;
+            let y = Math.floor(i/tm.width); 
+            let pos = {
+                x:x*tm.tilewidth,
+                y:y*tm.tileheight
+            }
+            let sprite = tm.tiles[i]-1;
+            let numSpritesRow = this.sprites.width/tm.tilewidth;
+            let spriteSource = {
+                x: sprite%numSpritesRow,
+                y: Math.floor(sprite/numSpritesRow)
+            }
+            let spriteSize = {x:tm.tilewidth,y:tm.tileheight};
+            if(tm.tiles[i])this.renderSprite(ctx as any, spriteSource, spriteSize, pos, spriteSize);
+        }
+        this.ctx.drawImage(canvas, org.x, org.y, bounds.x, bounds.y);
+        return [org,bounds];
+    }
+
     renderSpriteEntity(entity: EntityStub) {
         let transform = entity.components.__transform as Transform;
         let identity = entity.components.identity;
         let sprite = entity.components.sprite;
         let pos = util.pokit2canvas(this.ctx.canvas, transform.globalPosition, transform.globalBounds);
         pos  = util.vectorSub(pos, this.scroll);
-        let source = util.vectorMultiply(sprite.source, identity.bounds);
-        source = util.vectorCeil(source);
-        this.ctx.drawImage(this.sprites, source.x, source.y, identity.bounds.x, identity.bounds.y, pos.x, pos.y, transform.globalBounds.x, transform.globalBounds.y);
+        this.renderSprite(this.ctx, sprite.source, identity.bounds, pos, transform.globalBounds);
         return [pos, transform.globalBounds];
+    }
+
+    renderSprite(ctx: CanvasRenderingContext2D, source: Vector, spriteSize: Vector, pos: Vector, bounds: Vector) {
+        source = util.vectorMultiply(source, spriteSize);
+        source = util.vectorCeil(source);
+        ctx.drawImage(this.sprites, source.x, source.y, spriteSize.x, spriteSize.y, pos.x, pos.y, bounds.x, bounds.y);
     }
 
     renderDebugEntity(entity: EntityStub) {
@@ -670,6 +708,13 @@ export class MapCanvas {
         pos = util.rotateVector(pos, -resolved.components.__transform.globalRotation, center);
         console.log(center,pos);
         let scale = resolved.components.identity.bounds;
+        if(resolved.components.tilemap) {
+            let tm = resolved.components.tilemap;
+            scale = {
+                x: tm.width * tm.tilewidth,
+                y: tm.tiles.length / tm.width * tm.tileheight;
+            }
+        }
         let dif = util.vectorSub(pos, center);
         scale = util.vectorDivide(dif, scale);
         scale = util.vectorMultiply(scale, {x:2,y:2});
@@ -811,6 +856,13 @@ function addMeta(e: EntityStub, index: number, stub: string) {
         },
         get globalBounds() {
             if(e.components.camera?.isMainCamera) return POKIT_DIMS;
+            if(e.components.tilemap) {
+                let bounds = {
+                    x: e.components.tilemap.width * e.components.tilemap.tilewidth,
+                    y: e.components.tilemap.tiles.length / e.components.tilemap.width * e.components.tilemap.tileheight
+                }
+                return util.vectorMultiply(bounds, transform.globalScale);
+            }
             return util.vectorMultiply(i.bounds, transform.globalScale);
         },
         revPosition: (pos: Vector) => {
