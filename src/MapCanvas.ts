@@ -712,7 +712,7 @@ export class MapCanvas {
             let tm = resolved.components.tilemap;
             scale = {
                 x: tm.width * tm.tilewidth,
-                y: tm.tiles.length / tm.width * tm.tileheight;
+                y: tm.tiles.length / tm.width * tm.tileheight
             }
         }
         let dif = util.vectorSub(pos, center);
