@@ -46,7 +46,7 @@ import { applyInheritance, resolveLineage } from "./MapCanvas";
                 ${color[0]},
                 ${color[1]},
                 ${color[2]},
-                ${color[3]/255},
+                ${color[3]/255}
             );`
             return [k,style]
         });
@@ -54,6 +54,8 @@ import { applyInheritance, resolveLineage } from "./MapCanvas";
 </script>
 {#if desktop}
 <style>
+    /** TODO: FIx this fucking bullshit
+    */
     button {
         color: black;
     }
@@ -95,10 +97,10 @@ import { applyInheritance, resolveLineage } from "./MapCanvas";
     }
     .paletteoption {
         border: solid 3px grey;
+        --debug-color: rgba(0,0,255,1);
     }
     .paletteoption .fauximage {
-        --debug-color: rgba(0,0,255,1);
-        display: solid;
+        display: block;
         background-color: var(--debug-color);
         width: 40px;
         height: 40px;
